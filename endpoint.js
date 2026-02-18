@@ -12,7 +12,7 @@ app.post('/test-webhook', (req, res) => {
     res.status(200).send('Event Received');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Add '0.0.0.0' here!
 app.listen(PORT, '0.0.0.0', () => {
