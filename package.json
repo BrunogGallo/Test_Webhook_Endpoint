@@ -1,6 +1,7 @@
 {
   "name": "test_webhook_endpoint",
   "version": "1.0.0",
+  "type": "module",
   "main": "endpoint.js",
   "dependencies": {
     "express": "^4.18.2"
