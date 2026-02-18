@@ -1,0 +1,11 @@
+{
+  "name": "test_webhook_endpoint",
+  "version": "1.0.0",
+  "main": "endpoint.js",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "scripts": {
+    "start": "node endpoint.js"
+  }
+}
