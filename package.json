@@ -2,11 +2,11 @@
   "name": "test_webhook_endpoint",
   "version": "1.0.0",
   "type": "module",
-  "main": "endpoint.js",
+  "main": "listener.js",
   "dependencies": {
     "express": "^4.18.2"
   },
   "scripts": {
-    "start": "node endpoint.js"
+    "start": "node listener.js"
   }
 }
