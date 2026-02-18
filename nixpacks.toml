@@ -1,3 +1,5 @@
-# Only override the start command; let Nixpacks auto-detect Node from package.json
+# Force Node.js (otherwise Nixpacks picks Python because of requirements.txt)
+providers = ["node"]
+
 [start]
 cmd = "node listener.js"
