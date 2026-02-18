@@ -1,5 +1,3 @@
-[phases.setup]
-nixPkgs = ["nodejs"]
-
+# Only override the start command; let Nixpacks auto-detect Node from package.json
 [start]
-cmd = "node endpoint.js"
+cmd = "node listener.js"
