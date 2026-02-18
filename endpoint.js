@@ -13,4 +13,8 @@ app.post('/test-webhook', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+// Add '0.0.0.0' here!
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is live and reachable on port ${PORT}`);
+});
