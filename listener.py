@@ -8,14 +8,15 @@ app = Flask(__name__)
 def webhook():
     data = request.get_json()
     twoboxes_id = data.get('id')
-    rma_id = data.get('captured_rma')
-    line_items = data.get('line_items')
+    event_data = data.get('event_data')
+    captured_rma = event_data.get('captured_rma')
+    line_items = event_data.get('line_items')
 
     
     print('--- Webhook received ---')
     print('Headers:', json.dumps(dict(request.headers), indent=2))
     print('Two Boxes ID:', twoboxes_id)
-    print('RMA ID:', rma_id)
+    print('RMA ID:', captured_rma)
     print('------------------------')
 
     for item in line_items:
