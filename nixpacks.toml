@@ -1,5 +1,0 @@
-# Use Python provider
-providers = ["python"]
-
-[start]
-cmd = "gunicorn listener:app --bind 0.0.0.0:${PORT:-3000}"
