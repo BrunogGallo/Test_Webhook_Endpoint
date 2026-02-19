@@ -24,6 +24,9 @@ def webhook():
         print('Quantity:', item.get('quantity'))
         print('Order ID:', item.get('id'))
         print('Disposition:', item.get('disposition'))
+        print('------------------------')
+
+    print('End of webhook')
 
     
     return jsonify({'received': True}), 200
