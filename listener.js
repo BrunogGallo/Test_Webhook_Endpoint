@@ -8,9 +8,11 @@ app.use(express.json());
 
 // Webhook endpoint – accepts POST requests
 app.post('/webhook', (req, res) => {
+  data = req.
+  return_id = data.get("id")
   console.log('--- Webhook received ---');
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body:', req.body);
+  console.log('Body:', return_id);
   console.log('------------------------');
   res.status(200).json({ received: true });
 });
