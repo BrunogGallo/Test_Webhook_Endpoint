@@ -7,24 +7,23 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
-    return_id = data.get('id') if data else None
+    2boxes_id = data.get('id')
+    rma_id = data.get('captured_rma')
+    line_items = data.get('line_items')
+
     
     print('--- Webhook received ---')
     print('Headers:', json.dumps(dict(request.headers), indent=2))
-    print('Body:', data)
+    print('Two Boxes ID:', 2boxes_id)
+    print('RMA ID:', rma_id)
     print('------------------------')
+
+    for item in line_items:
+        print('SKU:', item.get('sku'))
+        print('Quantity:', item.get('quantity'))
+        print('Order ID:', item.get('id'))
+        print('Disposition:', item.get('disposition'))
+
     
     return jsonify({'received': True}), 200
 
-# Optional: catch-all POST for testing (e.g. POST /)
-@app.route('/', methods=['POST'])
-def root():
-    data = request.get_json()
-    return_id = data.get('id') if data else None
-    
-    print('--- POST received at / ---')
-    print('Headers:', json.dumps(dict(request.headers), indent=2))
-    print('Body:', return_id)
-    print('------------------------')
-    
-    return jsonify({'received': True}), 200
