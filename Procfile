@@ -1,1 +1,1 @@
-web: python listener.py
+web: gunicorn listener:app --bind 0.0.0.0:$PORT

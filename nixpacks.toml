@@ -2,4 +2,4 @@
 providers = ["python"]
 
 [start]
-cmd = "python listener.py"
+cmd = "gunicorn listener:app --bind 0.0.0.0:${PORT:-3000}"
