@@ -11,7 +11,7 @@ def webhook():
     
     print('--- Webhook received ---')
     print('Headers:', json.dumps(dict(request.headers), indent=2))
-    print('Body:', return_id)
+    print('Body:', data)
     print('------------------------')
     
     return jsonify({'received': True}), 200
