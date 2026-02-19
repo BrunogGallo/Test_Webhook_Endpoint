@@ -1,5 +1,5 @@
-# Force Node.js (otherwise Nixpacks picks Python because of requirements.txt)
-providers = ["node"]
+# Use Python provider
+providers = ["python"]
 
 [start]
-cmd = "node listener.js"
+cmd = "python listener.py"
