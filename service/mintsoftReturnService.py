@@ -103,5 +103,5 @@ class MintsoftReturnService:
             return response
             
         except Exception as e:
-            # self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
-            return None
+            print(f"Error adding items to return {return_id}: {e}")
+            raise
