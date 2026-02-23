@@ -8,22 +8,22 @@ from clients.mintsoftClient import MintsoftOrderClient
 
 
 class MintsoftReturnService:
-    def create_return(self, data) -> Optional[int]:
-        data = {
-            "ClientId": 3,
-            "WarehouseId": 3,
-            "Reference": "1ZY287C40333149987"
-        }
-        try:
-                self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
-                print(m_return)
-                response = self.client.create_external_return(data=m_return)
-                self.logger.info(f"External return created. Response: {response}")
-                return None
+    # def create_return(self, data) -> Optional[int]:
+    #     data = {
+    #         "ClientId": 3,
+    #         "WarehouseId": 3,
+    #         "Reference": "1ZY287C40333149987"
+    #     }
+    #     try:
+    #             self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
+    #             print(m_return)
+    #             response = self.client.create_external_return(data=m_return)
+    #             self.logger.info(f"External return created. Response: {response}")
+    #             return None
 
-        except Exception as e:
-            self.logger.error(f"Error creating return: {e}", exc_info=True)
-            return None
+    #     except Exception as e:
+    #         self.logger.error(f"Error creating return: {e}", exc_info=True)
+    #         return None
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, any]]:
         """
@@ -37,7 +37,7 @@ class MintsoftReturnService:
         Returns:
             Dict containing the confirmation response, or None if error occurred
         """
-        self.logger.info(f"Starting to add items to return {return_id}")
+        # self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
             event_data = data[0]["event_data"]
@@ -46,12 +46,12 @@ class MintsoftReturnService:
             warehouse_id = map_warehouse(merchant_name)
             
             if not line_items:
-                self.logger.warning(f"No line items found in return data")
+                # self.logger.warning(f"No line items found in return data")
                 return None
             
             # Step 1: Add items to the return
             for item in line_items:
-                self.logger.info(f"Adding item {item.get('sku')} to return {return_id}")
+                # self.logger.info(f"Adding item {item.get('sku')} to return {return_id}")
                 
                 # Map Two Boxes item to Mintsoft format
                 item_data = {
@@ -69,7 +69,7 @@ class MintsoftReturnService:
                         item_data["Comments"] = grading_title
                 
                 response = self.client.add_return_item(return_id, item_data)
-                self.logger.info(f"Added item {item.get('sku')} to return {return_id}: {response}")
+                # self.logger.info(f"Added item {item.get('sku')} to return {return_id}: {response}")
             
             # Step 2: Allocate locations for items
             # Get warehouse locations to find appropriate return location
@@ -84,7 +84,7 @@ class MintsoftReturnService:
                     break
             
             if returns_location_id:
-                self.logger.info(f"Found returns location ID: {returns_location_id}")
+                # self.logger.info(f"Found returns location ID: {returns_location_id}")
                 for item in line_items:
                     allocation_data = {
                         "SKU": item.get("sku"),
@@ -92,16 +92,16 @@ class MintsoftReturnService:
                         "Quantity": item.get("quantity", 1),
                     }
                     response = self.client.allocate_return_item_location(return_id, allocation_data)
-                    self.logger.info(f"Allocated location {returns_location_id} for item {item.get('sku')}: {response}")
+                    # self.logger.info(f"Allocated location {returns_location_id} for item {item.get('sku')}: {response}")
             else:
-                self.logger.warning(f"No returns location found for warehouse {warehouse_id}")
+                # self.logger.warning(f"No returns location found for warehouse {warehouse_id}")
             
             # Step 3: Confirm the return
-            self.logger.info(f"Confirming return {return_id}")
+            # self.logger.info(f"Confirming return {return_id}")
             response = self.client.confirm_return(return_id)
-            self.logger.info(f"Confirmed return {return_id}: {response}")
+            # self.logger.info(f"Confirmed return {return_id}: {response}")
             return response
             
         except Exception as e:
-            self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
+            # self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
             return None
