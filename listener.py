@@ -7,7 +7,7 @@ from service.mintsoftReturnService import MintsoftReturnService
 
 app = Flask(__name__)
 OrderClient = MintsoftOrderClient()
-ReturnService = MintsoftReturnService(OrderClient)
+ReturnService = MintsoftReturnService()
 
 
 # Webhook endpoint – accepts POST requests
