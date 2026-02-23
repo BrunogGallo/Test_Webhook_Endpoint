@@ -1,0 +1,127 @@
+[
+  {
+    "id": "611890d8-4e65-4a21-8d42-99ea6c7e1f35",
+    "event_data": {
+      "links": {
+        "actions": null,
+        "portal": "https://portal.twoboxes.com/3pls/c3e7e5d6-bc4f-4108-8501-7e658b3b06d8/returns/be52047b-a342-46c6-8485-601e56788a93",
+        "self": "https://api.twoboxes.io/api/v1/returns/be52047b-a342-46c6-8485-601e56788a93"
+      },
+      "id": "be52047b-a342-46c6-8485-601e56788a93",
+      "3pl": null,
+      "captured_rma": null,
+      "comments": null,
+      "completed_at": "2025-12-11T18:09:28.278852Z",
+      "customer": {
+        "email": "",
+        "first_name": null,
+        "full_name": null,
+        "last_name": null,
+        "tags": null
+      },
+      "grading_status": "complete",
+      "kind": "production",
+      "line_items": [
+        {
+          "links": {
+            "actions": null,
+            "portal": "https://portal.twoboxes.com/3pls/c3e7e5d6-bc4f-4108-8501-7e658b3b06d8/returns/be52047b-a342-46c6-8485-601e56788a93/line-items/987d5a84-d006-4e46-b421-2373f12703dc",
+            "self": "https://api.twoboxes.io/api/v1/return-line-items/987d5a84-d006-4e46-b421-2373f12703dc"
+          },
+          "id": "987d5a84-d006-4e46-b421-2373f12703dc",
+          "barcode": "656750322697",
+          "captured_lpn": null,
+          "carrier": null,
+          "child_reason": null,
+          "comments": null,
+          "consolidation_code": null,
+          "consolidation_provider": null,
+          "disposition": "Return to Stock",
+          "expected_quantity": 1,
+          "expiration_date": null,
+          "graded_attributes": [
+            {
+              "id": "245d73ed-a381-479f-90d8-67fcab99b6f2",
+              "merchant_grading_attribute": {
+                "id": "55e45f5b-fa97-4285-b708-c002270c209b",
+                "grading_attribute": {
+                  "id": "3dd0ffb8-ba8e-4a2c-8d6d-9863812902a4",
+                  "title": "No defects"
+                },
+                "mga_type": "inspection",
+                "vas_definition": null
+              },
+              "vas_successful": false,
+              "photo_urls": null
+            }
+          ],
+          "grading_ended_at": null,
+          "return_line_item_grading_status": "",
+          "lot_code": null,
+          "lpn": "X9Snz6VGyHNsyU9aFLa3pZ",
+          "merchant": {
+            "id": "c597505e-a91a-44d7-aa24-bbfbf809e331"
+          },
+          "parent_reason": null,
+          "product_variant": {
+            "barcode": "656750322697",
+            "id": "de2b5c12-6ae1-46fb-a588-8ac0311a91fe",
+            "name": "Duke | Chocolate Suede - 11.5",
+            "sku": "TB001"
+          },
+          "put_away_bin": null,
+          "quantity": 1,
+          "rma_line_item_id": "789e9230-6c84-4480-9102-4b27660227ac",
+          "site": {
+            "id": "2f52ee30-948f-4858-8b53-9db77cfb1784",
+            "name": "TB01"
+          },
+          "sku": "CHLCHE11-5",
+          "storefront_line_item_id": "",
+          "storefront_order_id": null,
+          "storefront_order_name": null,
+          "storefront_order_number": null,
+          "storefront_product_id": null,
+          "storefront_variant_id": null,
+          "tracking_number": "1ZEW436703051816123",
+          "transform_sku": null,
+          "transform_upc": null,
+          "upc": null,
+          "work_capture": true
+        }
+      ],
+      "linked_line_items": [],
+      "merchant_integration": {
+        "id": "a6ec067a-0c99-402c-8cb3-b61cc2dca426",
+        "merchant": {
+          "id": "c597505e-a91a-44d7-aa24-bbfbf809e331",
+          "name": "Thursday Boots"
+        },
+        "name": "Two Boxes",
+        "site": {
+          "id": "2f52ee30-948f-4858-8b53-9db77cfb1784",
+          "name": "TB01"
+        }
+      },
+      "return_provider": "work-capture",
+      "return_type": "work-capture",
+      "rma": "BdSk5KC8MR47AEs6wjVy",
+      "rma_address": {
+        "address_1": "",
+        "address_2": null,
+        "city": null,
+        "company": null,
+        "country_code": null,
+        "phone_number": null,
+        "province_code": "",
+        "zip": ""
+      },
+      "rma_return_id": "",
+      "rts": false,
+      "store_front_provider": "Shopify",
+      "undeliverable_shipping_charge": null,
+      "work_capture": true
+    },
+    "event_type": "return-complete"
+  }
+]
