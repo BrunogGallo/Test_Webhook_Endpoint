@@ -7,7 +7,7 @@ from service.mintsoftReturnService import MintsoftReturnService
 
 app = Flask(__name__)
 OrderClient = MintsoftOrderClient()
-ReturnService = MintsoftReturnService()
+# ReturnService = MintsoftReturnService()
 
 
 # Webhook endpoint – accepts POST requests
@@ -40,7 +40,7 @@ def webhook():
             print('------------------------')
 
         try:
-            ReturnService.create_external_return(create_external_return_data)
+            OrderClient.create_external_return(create_external_return_data)
             # ReturnService.add_return_items(add_return_items_data)
         except Exception as e:
             print(f"Error processing webhook: {e}")
