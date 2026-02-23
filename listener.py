@@ -49,7 +49,7 @@ def webhook():
     try:
         ReturnService.create_external_return(create_external_return_data)
         ##ReturnService.add_return_items(add_return_items_data)
-    except 
-        Exception as e:
+    except Exception as e:
+        print(f"Error: {e}") # Añade sangría aquí
 
     
