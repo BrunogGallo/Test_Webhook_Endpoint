@@ -93,7 +93,7 @@ class MintsoftReturnService:
                     }
                     response = self.client.allocate_return_item_location(return_id, allocation_data)
                     # self.logger.info(f"Allocated location {returns_location_id} for item {item.get('sku')}: {response}")
-            else:
+            # else:
                 # self.logger.warning(f"No returns location found for warehouse {warehouse_id}")
             
             # Step 3: Confirm the return
