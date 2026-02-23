@@ -3,6 +3,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
+import traceback
 
 from clients.mintsoftClient import MintsoftOrderClient
 
@@ -103,5 +104,8 @@ class MintsoftReturnService:
             return response
             
         except Exception as e:
-            print(f"Error adding items to return {return_id}: {e}")
+            print(f"Error adding items to return {return_id}")
+            print("Exception type:", type(e))
+            print("Exception repr:", repr(e))
+            traceback.print_exc()
             raise
