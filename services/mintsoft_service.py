@@ -125,25 +125,40 @@ class MintsoftReturnService:
             
             # Step 1: Add items to the return
             for item in line_items:
-                self.logger.info(f"Adding item {item.get('sku')} to return {return_id}")
-                
-                # Map Two Boxes item to Mintsoft format
+                sku = (item.get("sku") or "").strip()
+                if not sku:
+                    self.logger.warning("Skipping line item with missing or empty SKU")
+                    continue
+
+                quantity = item.get("quantity")
+                try:
+                    quantity = max(1, int(quantity)) if quantity is not None else 1
+                except (TypeError, ValueError):
+                    quantity = 1
+
+                # Map Two Boxes item to Mintsoft format (only non-null values to avoid API null reference)
                 item_data = {
-                    "ProductId": item.get("sku"),
-                    "Quantity": item.get("quantity", 1),
-                    "ReturnReasonId": 1,  # Default return reason
-                    "Action": "DoNothing",  # Default action
+                    "SKU": sku,
+                    "Quantity": quantity,
+                    "ReturnReasonId": 1,
+                    "Action": "DoNothing",
                 }
-                
-                # Add comments from graded attributes if available
-                graded_attributes = item.get("graded_attributes", [])
-                if graded_attributes and len(graded_attributes) > 0:
-                    grading_title = graded_attributes[0].get("merchant_grading_attribute", {}).get("grading_attribute", {}).get("title")
+
+                graded_attributes = item.get("graded_attributes") or []
+                if graded_attributes:
+                    ga = graded_attributes[0] or {}
+                    mg = (ga.get("merchant_grading_attribute") or {}).get("grading_attribute") or {}
+                    grading_title = (mg.get("title") or "").strip()
                     if grading_title:
                         item_data["Comments"] = grading_title
-                
+
                 response = self.client.add_return_item(return_id, item_data)
-                self.logger.info(f"Added item {item.get('sku')} to return {return_id}: {response}")
+                self.logger.info(f"Added item {sku} to return {return_id}: {response}")
+
+                if not response.get("Success"):
+                    msg = response.get("Message") or "Unknown error"
+                    self.logger.error(f"Mintsoft AddItem failed for SKU {sku}: {msg}")
+                    raise RuntimeError(f"Mintsoft AddItem failed: {msg}")
             
             # Step 2: Allocate locations for items
             # Get warehouse locations to find appropriate return location
