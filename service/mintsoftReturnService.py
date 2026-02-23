@@ -4,10 +4,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from loggers.main_logger import get_logger
 from clients.mintsoftClient import MintsoftOrderClient
-from mappers.main_mapper import map_return
-from mappers.mintsoft_mapper import map_client, map_warehouse
 
 
 class MintsoftReturnService:
