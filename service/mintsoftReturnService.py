@@ -46,12 +46,12 @@ class MintsoftReturnService:
             warehouse_id = map_warehouse(merchant_name)
             
             if not line_items:
-                # self.logger.warning(f"No line items found in return data")
+                print(f"No line items found in return data")
                 return None
             
             # Step 1: Add items to the return
             for item in line_items:
-                # self.logger.info(f"Adding item {item.get('sku')} to return {return_id}")
+                print(f"Adding item {item.get('sku')} to return {return_id}")
                 
                 # Map Two Boxes item to Mintsoft format
                 item_data = {
