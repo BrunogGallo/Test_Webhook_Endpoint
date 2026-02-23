@@ -25,7 +25,7 @@ class MintsoftReturnService:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
             return None
 
-    def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
+    def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, any]]:
         """
         Add items to a return, allocate their locations, and confirm the return.
         Processes Two Boxes return data and orchestrates the Mintsoft API calls.
