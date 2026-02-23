@@ -129,7 +129,7 @@ class MintsoftReturnService:
                 
                 # Map Two Boxes item to Mintsoft format
                 item_data = {
-                    "SKU": item.get("sku"),
+                    "ProductId": item.get("sku"),
                     "Quantity": item.get("quantity", 1),
                     "ReturnReasonId": 1,  # Default return reason
                     "Action": "DoNothing",  # Default action
