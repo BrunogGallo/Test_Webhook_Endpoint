@@ -41,7 +41,7 @@ class MintsoftReturnService:
         # self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
-            event_data = data[0]["event_data"]
+            event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
             merchant_name = self._get_merchant_name(data)
             warehouse_id = map_warehouse(merchant_name)
