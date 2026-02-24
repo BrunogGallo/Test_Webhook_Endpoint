@@ -146,10 +146,14 @@ class MintsoftReturnService:
 
                 # Map Two Boxes item to Mintsoft format (only non-null values to avoid API null reference)
                 item_data = {
-                    "ProductId": 72,
                     "Quantity": 1,
-                    "ReturnReasonId": 1,
-                    "Action": "REFUND",
+                    "ReturnReasonId": 50,
+                    "ProductId": 72,
+                    "Action": "RETURN",
+                    "Comments": "Major stain",
+                    "ReturnPhotos": [
+                    ""
+                    ]
                 }
                 
                 
