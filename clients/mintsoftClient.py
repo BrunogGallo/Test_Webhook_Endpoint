@@ -61,11 +61,12 @@ class MintsoftOrderClient:
         return r.json()
     
     def create_return(self, order_id:int, warehouse_id: Optional[int] = None, client_id: Optional[int] = None):
-        url = f"{self.BASE_URL}/api/Return/CreateReturn?orderId={order_id}&warehouseId={warehouse_id}"
+        url = f"{self.BASE_URL}/api/Return/CreateReturn?orderId={order_id}"
 
         r = requests.post(
             url, 
-            headers=self.headers()
+            headers=self.headers(),
+            json=data
         )
 
         r.raise_for_status()
