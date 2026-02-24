@@ -81,7 +81,31 @@ class MintsoftReturnService:
             if order_id is None:
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
                 print(m_return)
-                response = self.client.create_external_return(data=m_return)
+
+                event_data = data[0]["event_data"]
+                line_items = event_data.get("line_items", [])
+
+                external_return_data= {
+                    "Reference": line_items[0].get("tracking_number"),
+                    "ClientId": 3,
+                    "WarehouseId": 3,
+                    "ReturnItems": [],
+                }
+                for item in line_items:
+                    sku = item.get("sku")
+                    product_id = self.client.get_product_id(sku)  # or use your mapped client_id
+
+                    external_return_data["ReturnItems"].append({
+                        "SKU": sku,
+                        "ProductId": product_id,
+                        "Quantity": item.get("quantity"),
+                        "ReturnReasonId": 1,
+                        "Action": "NONE",
+                    })
+
+                
+
+                response = self.client.create_external_return(data=external_return_data)
                 self.logger.info(f"External return created. Response: {response}")
                 return None
 
@@ -99,17 +123,7 @@ class MintsoftReturnService:
             return None
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
-        """
-        Add items to a return, allocate their locations, and confirm the return.
-        Processes Two Boxes return data and orchestrates the Mintsoft API calls.
-        
-        Args:
-            return_id: The ID of the return to add items to
-            data: Two Boxes return data (list with event_data)
-        
-        Returns:
-            Dict containing the confirmation response, or None if error occurred
-        """
+
         self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
@@ -155,8 +169,6 @@ class MintsoftReturnService:
                     ""
                     ]
                 }
-                
-                
 
                 graded_attributes = item.get("graded_attributes") or []
                 if graded_attributes:

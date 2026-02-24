@@ -36,8 +36,8 @@ def webhook():
     def process_webhook():
         try:
             # Step 1: Create (or find) the Mintsoft return
-            # return_id = return_service.create_return(data)
-            return_id = 50
+            return_id = return_service.create_return(data)
+
             # Step 2: If a return was created, add items, allocate locations and confirm
             if return_id is not None:
                 return_service.add_return_items(return_id, data)
