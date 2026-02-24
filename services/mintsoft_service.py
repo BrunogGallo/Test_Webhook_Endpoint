@@ -102,7 +102,7 @@ class MintsoftReturnService:
                         "ReturnReasonId": 1,
                         "Action": "NONE",
                     })
-                    
+
                 print(external_return_data)
                 response = self.client.create_external_return(data=external_return_data)
 
@@ -148,7 +148,7 @@ class MintsoftReturnService:
                     continue
                 
                 try:
-                    product_id = self.client.get_product_id(sku, client_id)
+                    product_id = self.client.get_product_id(sku)
                 except Exception as e:
                     print(e)
 
@@ -160,13 +160,13 @@ class MintsoftReturnService:
 
                 # Map Two Boxes item to Mintsoft format (only non-null values to avoid API null reference)
                 item_data = {
-                    "Quantity": 1,
-                    "ReturnReasonId": 1,
-                    "ProductId": 72,
-                    "Action": "RETURN",
-                    "Comments": "Major stain",
+                    "Quantity": item.get("quantity"),
+                    "ReturnReasonId": 1, #Faltaria definir este campo
+                    "ProductId": product_id,
+                    "Action": "NONE",
+                    "Comments": event_data.get("comments"),
                     "ReturnPhotos": [
-                    ""
+                    "https://www.pampasports.com.ar/productos/camiseta-river-titular-2024-2025-ninos-premium/"
                     ]
                 }
 
