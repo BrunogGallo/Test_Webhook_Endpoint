@@ -150,7 +150,7 @@ class MintsoftReturnService:
                     "Quantity": quantity,
                     "Comments": "Major Stain",
                     "ReturnReasonId": 1,
-                    "Action": "NONE",
+                    "Action": "REFUND",
                     "ReturnPhotos": []
                 }
                 
