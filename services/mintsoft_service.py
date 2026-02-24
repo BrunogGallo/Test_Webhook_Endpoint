@@ -134,10 +134,10 @@ class MintsoftReturnService:
                     continue
                 
                 try:
-                    product_id = get_product_id(sku, client_id)
+                    product_id = self.client.get_product_id(sku, client_id)
                 except Exception as e:
                     print(e)
-                    
+
                 quantity = item.get("quantity")
                 try:
                     quantity = max(1, int(quantity)) if quantity is not None else 1

@@ -3,11 +3,9 @@ import threading
 from typing import Any, Dict, List, Union
 
 from services.mintsoft_service import MintsoftReturnService
-from clients.mintsoftClient import MintsoftOrderClient
 
 app = Flask(__name__)
-mintsoft_client = MintsoftOrderClient()
-return_service = MintsoftReturnService(mintsoft_client)
+return_service = MintsoftReturnService()
 
 
 def _normalise_webhook_payload(payload: Union[Dict[str, Any], List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
