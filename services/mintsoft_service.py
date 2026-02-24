@@ -148,9 +148,10 @@ class MintsoftReturnService:
                 item_data = {
                     "ProductId": product_id,
                     "Quantity": quantity,
-                    "ProductConditionId": 1,
+                    "Comments": "None"
                     "ReturnReasonId": 1,
                     "Action": "DoNothing",
+                    "ReturnPhotos": ["test"]
                 }
                 
                 
