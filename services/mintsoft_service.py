@@ -102,10 +102,10 @@ class MintsoftReturnService:
                         "ReturnReasonId": 1,
                         "Action": "NONE",
                     })
-
-                
-
+                    
+                print(external_return_data)
                 response = self.client.create_external_return(data=external_return_data)
+
                 self.logger.info(f"External return created. Response: {response}")
                 return None
 
