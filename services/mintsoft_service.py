@@ -114,7 +114,6 @@ class MintsoftReturnService:
             return_id = self.client.create_return(
                 order_id=order_id,
                 warehouse_id=m_return["WarehouseId"],
-                data=
             )
             self.logger.info(f"Created return with ID: {return_id}")
             return return_id
