@@ -149,7 +149,7 @@ class MintsoftReturnService:
                     "ProductId": product_id,
                     "Quantity": quantity,
                     "ProductConditionId": 1,
-                    "ReasonId": 1,
+                    "ReturnReasonId": 1,
                     "Action": "DoNothing",
                 }
                 
