@@ -61,7 +61,7 @@ class MintsoftOrderClient:
         return r.json()
     
     def create_return(self, order_id:int, warehouse_id: Optional[int] = None, client_id: Optional[int] = None):
-        url = f"{self.BASE_URL}/api/Return/CreateReturn?OrderId={order_id}&WarehouseId={warehouse_id}"
+        url = f"{self.BASE_URL}/api/Return/CreateReturn?orderId={order_id}&warehouseId={warehouse_id}"
 
         r = requests.post(
             url, 
