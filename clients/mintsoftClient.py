@@ -222,6 +222,3 @@ class MintsoftOrderClient:
         print(data)
         print(f"Product ID for SKU {sku}: {data}")
         return data
-
-client = MintsoftOrderClient()
-client.get_product_id("1 METER IVORY DOUBLE CREPE - KAREEMAH", 20)
