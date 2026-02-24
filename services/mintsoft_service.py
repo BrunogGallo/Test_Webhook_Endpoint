@@ -78,7 +78,7 @@ class MintsoftReturnService:
         m_return = map_return(data)
 
         try:
-            if order_id is None:
+            if order_id is None: # Si es un external return
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
                 print(m_return)
 
@@ -109,11 +109,11 @@ class MintsoftReturnService:
                 self.logger.info(f"External return created. Response: {response}")
                 return None
 
+            # Si es un Internal Return
             self.logger.info(f"Order found (ID={order_id}). Creating standard return.")
             return_id = self.client.create_return(
                 order_id=order_id,
                 warehouse_id=m_return["WarehouseId"],
-                client_id=m_return.get("ClientId"),  # safe if key exists
             )
             self.logger.info(f"Created return with ID: {return_id}")
             return return_id
