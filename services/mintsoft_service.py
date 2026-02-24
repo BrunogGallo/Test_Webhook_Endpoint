@@ -152,7 +152,7 @@ class MintsoftReturnService:
                     "Action": "DoNothing",
                 }
                 
-                print(item_data)
+                
 
                 graded_attributes = item.get("graded_attributes") or []
                 if graded_attributes:
@@ -163,6 +163,7 @@ class MintsoftReturnService:
                         item_data["Comments"] = grading_title
 
                 response = self.client.add_return_item(return_id, item_data)
+                self.logger.info(item_data)
                 self.logger.info(f"Added item {sku} to return {return_id}: {response}")
 
                 if not response.get("Success"):
