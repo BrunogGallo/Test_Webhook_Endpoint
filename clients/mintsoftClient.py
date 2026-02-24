@@ -222,4 +222,4 @@ class MintsoftOrderClient:
         product_id = data[0]["ID"] if data else None
         print(data)
         print(f"Product ID for SKU {sku}: {product_id}")
-        return data
+        return product_id
