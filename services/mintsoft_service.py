@@ -113,7 +113,7 @@ class MintsoftReturnService:
         self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
-            event_data = data["event_data"]
+            event_data = data[0]["event_data"]
             line_items = event_data.get("line_items", [])
             if not line_items:
                 self.logger.warning(f"No line items found in return data")
@@ -153,7 +153,7 @@ class MintsoftReturnService:
                 }
                 
                 print(item_data)
-                
+
                 graded_attributes = item.get("graded_attributes") or []
                 if graded_attributes:
                     ga = graded_attributes[0] or {}
