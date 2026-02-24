@@ -115,21 +115,29 @@ class MintsoftReturnService:
         try:
             event_data = data[0]["event_data"]
             line_items = event_data.get("line_items", [])
-            merchant_name = self._get_merchant_name(data)
-            warehouse_id = map_warehouse(merchant_name)
-            if warehouse_id is None:
-                warehouse_id = 3  # default when merchant not in mapper list
             if not line_items:
                 self.logger.warning(f"No line items found in return data")
                 return None
             
             # Step 1: Add items to the return
             for item in line_items:
+                merchant_name = self._get_merchant_name(data)
+                warehouse_id = map_warehouse(merchant_name)
+                client_id = map_client(merchant_name)
+                
+                if warehouse_id is None:
+                    warehouse_id = 3  # default when merchant not in mapper list
+
                 sku = (item.get("sku") or "").strip()
                 if not sku:
                     self.logger.warning("Skipping line item with missing or empty SKU")
                     continue
-
+                
+                try:
+                    product_id = get_product_id(sku, client_id)
+                except Exception as e:
+                    print(e)
+                    
                 quantity = item.get("quantity")
                 try:
                     quantity = max(1, int(quantity)) if quantity is not None else 1
@@ -138,7 +146,7 @@ class MintsoftReturnService:
 
                 # Map Two Boxes item to Mintsoft format (only non-null values to avoid API null reference)
                 item_data = {
-                    "SKU": sku,
+                    "ProductId": product_id,
                     "Quantity": quantity,
                     "ReturnReasonId": 1,
                     "Action": "DoNothing",

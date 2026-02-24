@@ -60,8 +60,19 @@ class MintsoftOrderClient:
         r.raise_for_status()
         return r.json()
     
-    def create_return(self, order_id:int, warehouse_id:int, client_id:int):
-        return []
+    def create_return(self, order_id:int, data):
+        url = f"{self.BASE_URL}/api/Return/CreateReturn?OrderId={order_id}"
+
+        r = requests.post(
+            url, 
+            headers=self.headers()
+        )
+
+        r.raise_for_status()
+        response = r.json()
+        return_id = response.get("ID")
+        print(response)
+        return return_id
 
     def create_external_return(self, data:Dict[str, Any]):
         url = f"{self.BASE_URL}/api/Return/CreateExternalReturn"
@@ -74,20 +85,11 @@ class MintsoftOrderClient:
 
         r.raise_for_status()
         response = r.json()
+        return_id = response.get("ID")
         print(response)
-        return response
+        return return_id
     
     def add_return_item(self, return_id: int, item_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Add a single item to a return.
-        
-        Args:
-            return_id: The ID of the return
-            item_data: Dictionary containing SKU, Quantity, ReturnReasonId, Action, and optional Comments
-        
-        Returns:
-            Dict containing the API response
-        """
         url = f"{self.BASE_URL}/api/Return/{return_id}/AddItem"
         
         r = requests.post(
@@ -100,16 +102,6 @@ class MintsoftOrderClient:
         return r.json()
     
     def allocate_return_item_location(self, return_id: int, allocation_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Allocate a location for an item in a return.
-        
-        Args:
-            return_id: The ID of the return
-            allocation_data: Dictionary containing SKU, LocationId, and Quantity
-        
-        Returns:
-            Dict containing the API response
-        """
         url = f"{self.BASE_URL}/api/Return/{return_id}/Allocate"
         
         r = requests.post(
@@ -122,15 +114,6 @@ class MintsoftOrderClient:
         return r.json()
     
     def confirm_return(self, return_id: int) -> Dict[str, Any]:
-        """
-        Confirm a return.
-        
-        Args:
-            return_id: The ID of the return to confirm
-        
-        Returns:
-            Dict containing the API response
-        """
         url = f"{self.BASE_URL}/api/Return/{return_id}/Confirm"
         
         r = requests.post(
@@ -225,3 +208,20 @@ class MintsoftOrderClient:
         print(data)
         return data    
     
+    def get_product_id(self, sku:str, client_id:int):
+        url = f"https://api.mintsoft.co.uk/api/Product/LookupProductId?SKU={sku}&clientId={client_id}"
+            
+        r = requests.get(
+            url,
+            headers=self.headers(),
+            timeout=30,
+        )
+
+        r.raise_for_status()
+        data = r.json()
+        print(data)
+        print(f"Product ID for SKU {sku}: {data}")
+        return data
+
+client = MintsoftOrderClient()
+client.get_product_id("1 METER IVORY DOUBLE CREPE - KAREEMAH", 20)

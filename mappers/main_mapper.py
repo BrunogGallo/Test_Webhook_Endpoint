@@ -11,7 +11,7 @@ load_dotenv()
 def _event_merchant_name(event_data):
     """Get merchant name from event_data; supports merchant_integration or first line item's merchant."""
     try:
-        return event_data["merchant_integration"]["merchant"]["name"]
+        return event_data["line_items"]["merchant"]["name"]
     except (KeyError, TypeError):
         pass
     line_items = event_data.get("line_items") or []
