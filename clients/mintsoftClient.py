@@ -220,6 +220,5 @@ class MintsoftOrderClient:
         r.raise_for_status()
         data = r.json()
         product_id = data[0]["ID"] if data else None
-        print(data)
         print(f"Product ID for SKU {sku}: {product_id}")
         return product_id

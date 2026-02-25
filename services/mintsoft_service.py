@@ -176,7 +176,7 @@ class MintsoftReturnService:
                     if grading_title:
                         item_data["Comments"] = grading_title
 
-                response = self.client.add_return_item(50, item_data)
+                response = self.client.add_return_item(return_id, item_data)
                 self.logger.info(item_data)
                 self.logger.info(f"Added item {sku} to return {return_id}: {response}")
 
