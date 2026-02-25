@@ -111,7 +111,6 @@ class MintsoftOrderClient:
         r = requests.post(
             url,
             headers=self.headers(),
-            json=allocation_data,
             timeout=30
         )
         r.raise_for_status()
