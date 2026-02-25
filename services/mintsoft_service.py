@@ -191,12 +191,7 @@ class MintsoftReturnService:
             
             # ID = 9 es para Return Shelf.
             returns_location_id = 2363
-            # for location in warehouse_locations:
-            #     location_name = location.get("Name" or "").lower()
-            #     if "return" in location_name or location.get("LocationTypeId") == 4:  # LocationTypeId 4 might be Returns
-            #         returns_location_id = location.get("ID")
-            #         break
-            
+
             if returns_location_id:
                 self.logger.info(f"Found returns location ID: {returns_location_id}")
                 for item in line_items:
