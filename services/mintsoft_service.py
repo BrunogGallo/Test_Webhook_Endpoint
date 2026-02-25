@@ -127,6 +127,7 @@ class MintsoftReturnService:
         try:
             event_data = data[0]["event_data"]
             line_items = event_data.get("line_items", [])
+            returned_product_map = {}
             
             if not line_items:
                 self.logger.warning(f"No line items found in return data")
@@ -174,6 +175,8 @@ class MintsoftReturnService:
                         item_data["Comments"] = grading_title
 
                 response = self.client.add_return_item(return_id, item_data)
+                returned_product_map[product_id] = response.get("ID")                
+
                 self.logger.info(item_data)
                 self.logger.info(f"Added item {sku} to return {return_id}: {response}")
 
@@ -200,7 +203,7 @@ class MintsoftReturnService:
                     product_id = self.client.get_product_id(sku)
 
                     allocation_data = {
-                        "ReturnItemId": product_id,
+                        "ReturnItemId": returned_product_map.get(product_id),
                         "LocationId": returns_location_id,
                         "Quantity": item.get("quantity"),
                     }
