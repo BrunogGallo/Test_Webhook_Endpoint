@@ -187,7 +187,7 @@ class MintsoftReturnService:
             warehouse_locations = self.client.get_warehouse_locations(warehouse_id)
             
             # ID = 9 es para Return Shelf.
-            returns_location_id = 9
+            returns_location_id = 2363
             # for location in warehouse_locations:
             #     location_name = location.get("Name" or "").lower()
             #     if "return" in location_name or location.get("LocationTypeId") == 4:  # LocationTypeId 4 might be Returns
@@ -202,10 +202,10 @@ class MintsoftReturnService:
                     allocation_data = {
                         "ReturnItemId": product_id,
                         "LocationId": returns_location_id,
-                        "Quantity": item.get("quantity", 1),
+                        "Quantity": item.get("quantity"),
                     }
                     response = self.client.allocate_return_item_location(return_id, allocation_data)
-                    self.logger.info(f"Allocated location {returns_location_id} for item {item.get('sku')}: {response}")
+                    self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
             else:
                 self.logger.warning(f"No returns location found for warehouse {warehouse_id}")
             
