@@ -197,8 +197,10 @@ class MintsoftReturnService:
             if returns_location_id:
                 self.logger.info(f"Found returns location ID: {returns_location_id}")
                 for item in line_items:
+                    product_id = self.client.get_product_id(sku)
+
                     allocation_data = {
-                        "SKU": item.get("sku"),
+                        "ReturnItemId": product_id,
                         "LocationId": returns_location_id,
                         "Quantity": item.get("quantity", 1),
                     }

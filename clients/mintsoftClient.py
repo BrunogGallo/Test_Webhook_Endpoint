@@ -102,7 +102,7 @@ class MintsoftOrderClient:
         return r.json()
     
     def allocate_return_item_location(self, return_id: int, allocation_data: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.BASE_URL}/api/Return/{return_id}/Allocate"
+        url = f"{self.BASE_URL}/api/Return/{return_id}/AllocateItemLocation"
         
         r = requests.post(
             url,
