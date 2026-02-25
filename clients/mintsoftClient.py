@@ -106,7 +106,7 @@ class MintsoftOrderClient:
         quantity = data.get("Quantity")
         location_id = data.get("LocationId")
         
-        url = f"{self.BASE_URL}/api/Return/{id}/AllocateItemLocation?ReturnitemId={item_id}&Quantity={quantity}&LocationId={location_id}" 
+        url = f"{self.BASE_URL}/api/Return/{return_id}/AllocateItemLocation?ReturnitemId={item_id}&Quantity={quantity}&LocationId={location_id}" 
         
         r = requests.post(
             url,
