@@ -186,7 +186,7 @@ class MintsoftReturnService:
             # Get warehouse locations to find appropriate return location
             warehouse_locations = self.client.get_warehouse_locations(warehouse_id)
             
-            # ID = 9 es para Return Shelf
+            # ID = 9 es para Return Shelf.
             returns_location_id = 9
             # for location in warehouse_locations:
             #     location_name = location.get("Name" or "").lower()
