@@ -111,10 +111,8 @@ class MintsoftReturnService:
 
             # Si es un Internal Return
             self.logger.info(f"Order found (ID={order_id}). Creating standard return.")
-            return_id = self.client.create_return(
-                order_id=order_id,
-                warehouse_id=m_return["WarehouseId"],
-            )
+            return_id = self.client.create_return(order_id, warehouse_id=m_return["WarehouseId"])
+
             self.logger.info(f"Created return with ID: {return_id}")
             return return_id
 

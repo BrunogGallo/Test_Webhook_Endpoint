@@ -66,7 +66,6 @@ class MintsoftOrderClient:
         r = requests.post(
             url, 
             headers=self.headers(),
-            json=data
         )
 
         r.raise_for_status()
