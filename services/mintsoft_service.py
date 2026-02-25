@@ -127,6 +127,7 @@ class MintsoftReturnService:
         try:
             event_data = data[0]["event_data"]
             line_items = event_data.get("line_items", [])
+            
             if not line_items:
                 self.logger.warning(f"No line items found in return data")
                 return None
@@ -161,13 +162,9 @@ class MintsoftReturnService:
                     "Quantity": item.get("quantity"),
                     "ReturnReasonId": 1, #Faltaria definir este campo
                     "ProductId": product_id,
-                    "Action": "NONE",
-                    if event_data.get("work_capture") == True:
-                        "ReturnPhotos": [
-                        "Image_Url"
-                        ]
+                    "Action": "NONE",                    
                 }
-
+                
                 graded_attributes = item.get("graded_attributes") or []
                 if graded_attributes:
                     ga = graded_attributes[0] or {}
