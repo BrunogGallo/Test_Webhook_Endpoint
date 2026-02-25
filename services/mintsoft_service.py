@@ -162,10 +162,10 @@ class MintsoftReturnService:
                     "ReturnReasonId": 1, #Faltaria definir este campo
                     "ProductId": product_id,
                     "Action": "NONE",
-                    # "Comments": event_data.get("comments"),
-                    "ReturnPhotos": [
-                    "https://www.pampasports.com.ar/productos/camiseta-river-titular-2024-2025-ninos-premium/"
-                    ]
+                    if event_data.get("work_capture") = True
+                        "ReturnPhotos": [
+                        "Image_Url"
+                        ]
                 }
 
                 graded_attributes = item.get("graded_attributes") or []
