@@ -101,8 +101,12 @@ class MintsoftOrderClient:
         r.raise_for_status()
         return r.json()
     
-    def allocate_return_item_location(self, return_id: int, allocation_data: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.BASE_URL}/api/Return/{return_id}/AllocateItemLocation"
+    def allocate_return_item_location(self, return_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+        item_id = data.get("ReturnItemId")
+        quantity = data.get("Quantity")
+        location_id = data.get("LocationId")
+        
+        url = f"{self.BASE_URL}/api/Return/{id}/AllocateItemLocation?ReturnitemId={item_id}&Quantity={quantity}&LocationId={location_id}" 
         
         r = requests.post(
             url,
