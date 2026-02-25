@@ -162,7 +162,7 @@ class MintsoftReturnService:
                     "ReturnReasonId": 1, #Faltaria definir este campo
                     "ProductId": product_id,
                     "Action": "NONE",
-                    if event_data.get("work_capture") = True
+                    if event_data.get("work_capture") = True:
                         "ReturnPhotos": [
                         "Image_Url"
                         ]
