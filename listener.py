@@ -5,7 +5,7 @@ import threading
 from typing import Any, Dict, List, Union
 
 app = Flask(__name__)
-GAS_URL = os.environ.get("https://script.google.com/u/0/home/projects/1EewwTsZb_M7g7BoEgBdDXH344XOyfsvXgJQTh8oiaTjUTB1VQffNXQm9/edit")
+GAS_URL = os.environ.get("https://script.google.com/macros/s/AKfycbwyEGKoyH_pkXJ8yqLoe54G89S26iuVPuH2kywDSt6m9cVEdG2hXDBRljeVPfMLjrzZ6g/exec")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
