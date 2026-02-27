@@ -66,6 +66,7 @@ class MintsoftReturnService:
         for order in orders:
             if str(order.get("OrderNumber")) == str(rma_order_name):
                 self.logger.info(f"Found matching order in Mintsoft for RMA order name: {rma_order_name}")
+                
                 return order.get("ID")
 
         self.logger.warning(f"No matching order found in Mintsoft for RMA order name: {rma_order_name}")
@@ -99,7 +100,7 @@ class MintsoftReturnService:
                         "SKU": sku,
                         "ProductId": product_id,
                         "Quantity": item.get("quantity"),
-                        "ReturnReasonId": 1,
+                        "ReturnReasonId": 2,
                         "Action": "NONE",
                     })
 
