@@ -100,7 +100,7 @@ class MintsoftReturnService:
                         "SKU": sku,
                         "ProductId": product_id,
                         "Quantity": item.get("quantity"),
-                        "ReturnReasonId": 1,
+                        "ReturnReasonId": 2,
                         "Action": "NONE",
                     })
 
