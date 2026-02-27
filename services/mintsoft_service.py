@@ -95,7 +95,7 @@ class MintsoftReturnService:
                 for item in line_items:
                     sku = item.get("sku")
                     product_id = self.client.get_product_id(sku)
-                    disposition = item.get("Disposition")
+                    disposition = item.get("disposition")
 
                     if disposition == "Return to Stock":
                         return_reason = 1
