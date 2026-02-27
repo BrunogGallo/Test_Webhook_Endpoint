@@ -97,15 +97,17 @@ class MintsoftReturnService:
                     product_id = self.client.get_product_id(sku)
                     disposition = item.get("Disposition")
 
+                    if disposition == "Return to Stock":
+                        return_reason = 1
+                    else:
+                        return_reason = 2,
+
                     external_return_data["ReturnItems"].append({
                         "SKU": sku,
                         "ProductId": product_id,
                         "Quantity": item.get("quantity"),
                         "Action": "NONE",
-                        if disposition == "Return to Stock":
-                            "ReturnReasonId": 1,
-                        else:
-                            "ReturnReasonId": 2,
+                        "ReturnReasonId": return_reason,
                     })
 
                 print(external_return_data)
