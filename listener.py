@@ -5,10 +5,19 @@ import threading
 from typing import Any, Dict, List, Union
 
 app = Flask(__name__)
+
+WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET")
 GAS_URL = os.environ.get("GAS_URL")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+
+    token = request.headers.get("X-Webhook-Secret")
+
+    if not token or token != WEBHOOK_SECRET:
+        print("Unauthorized Access Request")
+        return jsonify({"error": "Unauthorized"}), 401
+    
     raw_data = request.get_json(silent=True)
     if not raw_data:
         return jsonify({"error": "No data"}), 400
