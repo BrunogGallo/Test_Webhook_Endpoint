@@ -12,7 +12,7 @@ GAS_URL = os.environ.get("GAS_URL")
 @app.route("/webhook", methods=["POST"])
 def webhook():
 
-    token = request.headers.get("X-Webhook-Secret")
+    token = request.headers.get("x-two-boxes-authorization")
 
     if not token or token != WEBHOOK_SECRET:
         print("Unauthorized Access Request")
