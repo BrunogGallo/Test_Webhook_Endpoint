@@ -25,7 +25,7 @@ def webhook():
     # Enviamos el JSON al script de Google de forma ultra simple
     try:
         # Usamos timeout para que Railway no se quede colgado
-        requests.post(GAS_URL, json=raw_data, timeout=5)
+        requests.post(GAS_URL, json=raw_data, timeout=20)
     except Exception as e:
         print(f"Error enviando a Google: {e}")
 
