@@ -22,7 +22,6 @@ def enviar_a_google_async(datos):
 def webhook():
 
     token = request.headers.get("x-two-boxes-authorization")
-
     if not token or token != WEBHOOK_SECRET:
         print("Unauthorized Access Request")
         return jsonify({"error": "Unauthorized"}), 401
@@ -31,7 +30,7 @@ def webhook():
     if not raw_data:
         return jsonify({"error": "No data"}), 400
 
-    threading.Thread(target=enviar_a_google_async, args=(raw_data,)).start()
+    thread_data = raw_data.copy() if isinstance(raw_data, dict) else raw_data
+    threading.Thread(target=enviar_a_google_async, args=(thread_data,)).start()
 
-    print("--- Webhook Received ---")
-    return jsonify({"received": True}), 200
+    return "", 200
