@@ -9,6 +9,15 @@ app = Flask(__name__)
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET")
 GAS_URL = os.environ.get("GAS_URL")
 
+def enviar_a_google_async(datos):
+    """Función para enviar datos en segundo plano"""
+    try:
+        # Aquí el timeout puede ser largo porque no bloquea al emisor
+        requests.post(GAS_URL, json=datos, timeout=30)
+        print("✅ Enviado a Google Apps Script correctamente")
+    except Exception as e:
+        print(f"❌ Error enviando a Google: {e}")
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
 
@@ -22,12 +31,7 @@ def webhook():
     if not raw_data:
         return jsonify({"error": "No data"}), 400
 
-    # Enviamos el JSON al script de Google de forma ultra simple
-    try:
-        # Usamos timeout para que Railway no se quede colgado
-        requests.post(GAS_URL, json=raw_data, timeout=20)
-    except Exception as e:
-        print(f"Error enviando a Google: {e}")
+    threading.Thread(target=enviar_a_google_async, args=(raw_data)).start()
 
-    print("--- Webhook recibido y enviado a Drive via Proxy ---")
+    print("--- Webhook Received ---")
     return jsonify({"received": True}), 200
