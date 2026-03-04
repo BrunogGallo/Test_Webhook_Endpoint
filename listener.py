@@ -31,7 +31,7 @@ def webhook():
     if not raw_data:
         return jsonify({"error": "No data"}), 400
 
-    threading.Thread(target=enviar_a_google_async, args=(raw_data)).start()
+    threading.Thread(target=enviar_a_google_async, args=(raw_data,)).start()
 
     print("--- Webhook Received ---")
     return jsonify({"received": True}), 200
