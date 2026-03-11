@@ -138,18 +138,8 @@ class MintsoftOrderClient:
             json.dump(data, f, ensure_ascii=False, indent=4)
         return data
     
-    def transfer_stock(self,):
-        url = f"{self.BASE_URL}/api/Warehouse/TransferStock"
-
-        data = {
-            "SourceWarehouseId": 3,
-            "SourceNameOrCode": "HC00000001",
-            "DestinationWarehouseId": 3,
-            "DestinationNameOrCode": "TC-00-1",
-            "ProductId": 74,
-            "Quantity": 1,
-            "Comment": "Test Carton Transfer",
-        }
+    def transfer_stock(self, data: Dict):
+        url = f"{self.BASE_URL}/api/Warehouse/TransferStock"          
 
         r = requests.put(
             url,

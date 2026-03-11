@@ -32,6 +32,9 @@ def procesar_webhook(data):
         if return_id is not None:
             return_service.add_return_items(return_id, data)
 
+        # Pasar items de RET o RET-QT a la caja del return
+        return_service.reallocate_return_items(data)
+
         print("Webhook processed successfully")
         
     except Exception as e:

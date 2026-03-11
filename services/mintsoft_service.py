@@ -86,9 +86,6 @@ class MintsoftReturnService:
 
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
-        warehouse_id = map_warehouse(merchant_name)
-
-        m_return = map_return(data)
 
         try:
             if client_id is None:
@@ -97,7 +94,6 @@ class MintsoftReturnService:
 
             if order_id is None: # Si es un external return
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
-                print(m_return)
 
                 event_data = data["event_data"]
                 line_items = event_data.get("line_items", [])
@@ -112,7 +108,7 @@ class MintsoftReturnService:
                 external_return_data= {
                     "Reference": return_identifier,
                     "ClientId": client_id,
-                    "WarehouseId": warehouse_id,
+                    "WarehouseId": 3, # Inicialmente siempre van a RET o RET-QT
                     "ReturnItems": [],
                 }
                 for item in line_items:
@@ -140,8 +136,8 @@ class MintsoftReturnService:
                 return None
 
             # Si es un Internal Return
-            self.logger.info(f"Order found (ID={order_id}). Creating standard return on Warehouse ID = {m_return["WarehouseId"]}.")
-            return_id = self.client.create_return(order_id, warehouse_id=m_return["WarehouseId"])
+            self.logger.info(f"Order found (ID={order_id}). Creating standard return on Warehouse ID = {3}.")
+            return_id = self.client.create_return(order_id, warehouse_id = 3)
 
             self.logger.info(f"Created return with ID: {return_id}")
             return return_id
@@ -165,9 +161,6 @@ class MintsoftReturnService:
             
             # Step 1: Add items to the return
             for item in line_items:
-                merchant_name = self._get_merchant_name(data)
-                warehouse_id = map_warehouse(merchant_name)
-                client_id = map_client(merchant_name)
                 disposition = item.get("disposition")
 
                 if disposition == "Return to Stock":
@@ -221,36 +214,65 @@ class MintsoftReturnService:
             
             # Step 2: Allocate locations for items 
         
-                for item in line_items:
-                    product_id = self.client.get_product_id(sku)
+            for item in line_items:
+                product_id = self.client.get_product_id(sku)
 
-                    allocation_data = {
-                        "ReturnItemId": returned_product_map.get(product_id),
-                        "LocationId": returns_location_id,
-                        "Quantity": item.get("quantity"),
-                    }
-                    response = self.client.allocate_return_item_location(return_id, allocation_data)
-                    self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
+                allocation_data = {
+                    "ReturnItemId": returned_product_map.get(product_id),
+                    "LocationId": returns_location_id,
+                    "Quantity": item.get("quantity"),
+                },
+
+                response = self.client.allocate_return_item_location(return_id, allocation_data)
+                self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
             
             # Step 3: Confirm the return
             self.logger.info(f"Confirming return {return_id}")
             response = self.client.confirm_return(return_id)
             self.logger.info(f"Confirmed return {return_id}: {response}")
-            return response
-            
+
+            return None
+        
         except Exception as e:
             self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
             return None
+    
+    def reallocate_return_items(self, data):
+        event_data = data["event_data"]
+        line_items = event_data.get("line_items", [])
 
-if __name__ == "__main__":
-    from pathlib import Path
-    import json
+        for item in line_items:
+            location_id = item.get("return_location")
+            sku = item.get("sku")
+            product_id = self.client.get_product_id(sku)
+            merchant = self._get_merchant_name(data)
+            warehouse = map_warehouse(merchant)
 
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    MODEL_PATH = BASE_DIR / "models" / "tb_rma_model.json"
+            if location_id == 4104:
+                data = {
+                    "SourceWarehouseId": 3,
+                    "SourceNameOrCode": "RET",
+                    "DestinationWarehouseId": warehouse,
+                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "ProductId": product_id,
+                    "Quantity": item.get("quantity"),
+                    "Comment": "Return reallocation",
+                }
 
-    with MODEL_PATH.open("r", encoding="utf-8") as f:
-        tb_data = json.load(f)
-
-    service = MintsoftReturnService()
-    service.create_return(tb_data)
+            else:
+                data = {
+                    "SourceWarehouseId": 3,
+                    "SourceNameOrCode": "RET-QT",
+                    "DestinationWarehouseId": item.get("warehouse"),
+                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "ProductId": item.get("product_id"),
+                    "Quantity": item.get("quantity"),
+                    "Comment": "Return reallocation",
+                } 
+            try:
+                response = self.client.transfer_stock(data)
+            except Exception as e:
+                print(e)
+    
+        return response
+        
