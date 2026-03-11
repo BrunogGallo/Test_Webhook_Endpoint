@@ -35,7 +35,7 @@ class MintsoftReturnService:
         return ""
 
     def _get_storefront_order_number(self, data) -> str:
-        return data[0]["event_data"]["line_items"][0]["storefront_order_number"]
+        return data["event_data"]["line_items"][0]["storefront_order_number"]
 
     def fetch_mintsoft_orders(self, data) -> List[Dict]:
         self.logger.info("Starting to fetch Mintsoft orders")
@@ -79,8 +79,8 @@ class MintsoftReturnService:
     def create_return(self, data) -> Optional[int]:
         orders = self.fetch_mintsoft_orders(data)
 
-        #if orders is None:
-            #return None
+        if orders is None:
+            return None
 
         order_id = self.match_rma_order(orders, data)
 
