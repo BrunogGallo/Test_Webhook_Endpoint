@@ -43,6 +43,10 @@ class MintsoftReturnService:
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
 
+        if client_id is None:
+            print ("Client not in Mintsoft, return cannot be processed")
+            return None
+
         all_orders: List[Dict] = []
         try:
             for status_id in self.status_ids:
@@ -83,7 +87,7 @@ class MintsoftReturnService:
         m_return = map_return(data)
 
         try:
-            if client_id == None:
+            if client_id is None:
                 print ("Client not in Mintsoft, return cannot be processed")
                 return None
 
