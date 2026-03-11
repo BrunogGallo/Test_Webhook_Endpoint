@@ -43,10 +43,11 @@ class MintsoftOrderClient:
         }
 
     def get_orders(self, client_id: Optional[int] = None, status_id: Optional[int] = None) -> List[Dict[str, Any]]:
-        if client_id is None:
-            client_id = self.client_id
-
         url = f"{self.BASE_URL}/api/Order/List?clientId={client_id}"
+
+        if status_id is not None:
+            url += f"&statusId={status_id}"
+            
         r = requests.get(
             url,
             headers=self.headers(),

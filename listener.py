@@ -29,11 +29,13 @@ def procesar_webhook(data):
         return_id = return_service.create_return(data)
 
         # Agregar items al return en caso de que sea interno
-        if return_id is not None:
+        if return_id[0] is not None:
             return_service.add_return_items(return_id, data)
+            return_service.reallocate_return_items(data)
 
         # Pasar items de RET o RET-QT a la caja del return
-        return_service.reallocate_return_items(data )
+        if return_id[1] == "Completed":
+          return_service.reallocate_return_items(data)
 
         print("Webhook processed successfully")
         
