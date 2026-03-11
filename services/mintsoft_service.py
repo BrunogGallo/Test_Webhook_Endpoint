@@ -133,7 +133,7 @@ class MintsoftReturnService:
                 response = self.client.create_external_return(data=external_return_data)
 
                 self.logger.info(f"External return created. Response: {response}")
-                return None
+                return None, "Completed"
 
             # Si es un Internal Return
             self.logger.info(f"Order found (ID={order_id}). Creating standard return on Warehouse ID = {3}.")
