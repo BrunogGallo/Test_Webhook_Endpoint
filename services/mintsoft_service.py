@@ -41,7 +41,7 @@ class MintsoftReturnService:
         self.logger.info("Starting to fetch Mintsoft orders")
 
         merchant_name = self._get_merchant_name(data)
-        client_id = map_client(merchant_name)
+        client_id = map_client(merchant_name) # Si no encuentra devuelve None
 
         all_orders: List[Dict] = []
         try:
@@ -76,20 +76,35 @@ class MintsoftReturnService:
         orders = self.fetch_mintsoft_orders(data)
         order_id = self.match_rma_order(orders, data)
 
+        merchant_name = self._get_merchant_name(data)
+        client_id = map_client(merchant_name) # Si no encuentra devuelve None
+        warehouse_id = map_warehouse(merchant_name)
+
         m_return = map_return(data)
 
         try:
+            if client_id == None:
+                print ("Client not in Mintsoft, return cannot be processed")
+                return None
+
             if order_id is None: # Si es un external return
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
                 print(m_return)
 
                 event_data = data[0]["event_data"]
                 line_items = event_data.get("line_items", [])
+                return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+
+                if return_identifier is None:
+                    completed_at = event_data.get("completed_at")
+                    customer_email = event_data["customer"].get("email")
+                    new_identifier = f"{completed_at}-{customer_email}"
+                    return_identifier = new_identifier
 
                 external_return_data= {
-                    "Reference": line_items[0].get("tracking_number"),
-                    "ClientId": 3,
-                    "WarehouseId": 3,
+                    "Reference": return_identifier,
+                    "ClientId": client_id,
+                    "WarehouseId": warehouse_id,
                     "ReturnItems": [],
                 }
                 for item in line_items:
@@ -145,9 +160,14 @@ class MintsoftReturnService:
                 merchant_name = self._get_merchant_name(data)
                 warehouse_id = map_warehouse(merchant_name)
                 client_id = map_client(merchant_name)
-                
-                if warehouse_id is None:
-                    warehouse_id = 3  # default when merchant not in mapper list
+                disposition = item.get("disposition")
+
+                if disposition == "Return to Stock":
+                    return_reason = 1
+                    returns_location_id = 4104 # RET
+                else:
+                    return_reason = 2,
+                    returns_location_id = 2363 # RET-QT
 
                 sku = (item.get("sku") or "").strip()
                 if not sku:
@@ -165,10 +185,9 @@ class MintsoftReturnService:
                 except (TypeError, ValueError):
                     quantity = 1
 
-                # Map Two Boxes item to Mintsoft format (only non-null values to avoid API null reference)
                 item_data = {
                     "Quantity": item.get("quantity"),
-                    "ReturnReasonId": 1, #Faltaria definir este campo
+                    "ReturnReasonId": return_reason, 
                     "ProductId": product_id,
                     "Action": "NONE",                    
                 }
@@ -192,15 +211,8 @@ class MintsoftReturnService:
                     self.logger.error(f"Mintsoft AddItem failed for SKU {sku}: {msg}")
                     raise RuntimeError(f"Mintsoft AddItem failed: {msg}")
             
-            # Step 2: Allocate locations for items
-            # Get warehouse locations to find appropriate return location
-            warehouse_locations = self.client.get_warehouse_locations(warehouse_id)
-            
-            # ID = 9 es para Return Shelf.
-            returns_location_id = 2363
-
-            if returns_location_id:
-                self.logger.info(f"Found returns location ID: {returns_location_id}")
+            # Step 2: Allocate locations for items 
+        
                 for item in line_items:
                     product_id = self.client.get_product_id(sku)
 
@@ -211,8 +223,6 @@ class MintsoftReturnService:
                     }
                     response = self.client.allocate_return_item_location(return_id, allocation_data)
                     self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
-            else:
-                self.logger.warning(f"No returns location found for warehouse {warehouse_id}")
             
             # Step 3: Confirm the return
             self.logger.info(f"Confirming return {return_id}")

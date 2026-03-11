@@ -13,13 +13,11 @@ class MintsoftOrderClient:
     def __init__(self):
         self.username = os.getenv("MINTSOFT_USERNAME")
         self.password = os.getenv("MINTSOFT_PASSWORD")
-        self.client_id = 3
-        self.warehouse_id = 3
 
-        if not all([self.username, self.password, self.client_id]):
+        if not all([self.username, self.password]):
             raise RuntimeError(
                 "Missing Mintsoft credentials "
-                "(MINTSOFT_USERNAME / MINTSOFT_PASSWORD / MINTSOFT_CLIENT_ID)"
+                "(MINTSOFT_USERNAME / MINTSOFT_PASSWORD)"
             )
 
         self.api_key = self._authenticate()
@@ -49,8 +47,6 @@ class MintsoftOrderClient:
             client_id = self.client_id
 
         url = f"{self.BASE_URL}/api/Order/List?clientId={client_id}"
-        if status_id is not None:
-            url += f"&statusId={status_id}"
         r = requests.get(
             url,
             headers=self.headers(),

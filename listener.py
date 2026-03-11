@@ -2,19 +2,16 @@ from flask import Flask, request, jsonify
 import os
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from services.mintsoft_service import MintsoftReturnService
 
 app = Flask(__name__)
+return_service = MintsoftReturnService()
 
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET")
 GAS_URL = os.environ.get("GAS_URL")
 
-# 1. Create a Thread Pool with a strict limit (e.g., 5 to 10 workers)
-# This prevents RAM exhaustion. If a burst of 50 webhooks comes in, 
-# it processes 5 at a time and queues the rest automatically.
-executor = ThreadPoolExecutor(max_workers=5)
+executor = ThreadPoolExecutor(max_workers=10)
 
-# 2. Use a Session to reuse underlying TCP connections
-# This prevents socket exhaustion when making dozens of requests to Google.
 session = requests.Session()
 
 def enviar_a_google_async(datos):
@@ -25,6 +22,20 @@ def enviar_a_google_async(datos):
         print("✅ Enviado a Google Apps Script correctamente")
     except Exception as e:
         print(f"❌ Error enviando a Google: {e}")
+
+def procesar_webhook(data):
+    try:
+        # Crea return interno o externo
+        return_id = return_service.create_return(data)
+
+        # Agregar items al return en caso de que sea interno
+        if return_id is not None:
+            return_service.add_return_items(return_id, data)
+
+        print("Webhook processed successfully")
+        
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -39,8 +50,11 @@ def webhook():
 
     thread_data = raw_data.copy() if isinstance(raw_data, dict) else raw_data
     
-    # 3. Submit the task to the queue instead of spawning a wild thread
+    # 3. Subir JSON al Google Drive
     executor.submit(enviar_a_google_async, thread_data)
+
+    # 4. Procesarlo en Mintsoft
+    executor.submit(procesar_webhook, raw_data)
 
     return "", 200
 
