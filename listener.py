@@ -33,7 +33,7 @@ def procesar_webhook(data):
             return_service.add_return_items(return_id, data)
 
         # Pasar items de RET o RET-QT a la caja del return
-        return_service.reallocate_return_items(data)
+        return_service.reallocate_return_items(data )
 
         print("Webhook processed successfully")
         
