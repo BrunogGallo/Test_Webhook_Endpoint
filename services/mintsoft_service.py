@@ -35,7 +35,7 @@ class MintsoftReturnService:
         return ""
 
     def _get_storefront_order_number(self, data) -> str:
-        return data[0]["event_data"]["line_items"][0]["storefront_order_number"]
+        return data["event_data"]["line_items"][0]["storefront_order_number"]
 
     def fetch_mintsoft_orders(self, data) -> List[Dict]:
         self.logger.info("Starting to fetch Mintsoft orders")
@@ -233,7 +233,6 @@ class MintsoftReturnService:
         except Exception as e:
             self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
             return None
-
 
 if __name__ == "__main__":
     from pathlib import Path

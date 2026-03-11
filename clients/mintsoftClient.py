@@ -138,27 +138,26 @@ class MintsoftOrderClient:
             json.dump(data, f, ensure_ascii=False, indent=4)
         return data
     
-    def transfer_stock(self, warehouse_id:int, product_id:int, source_location_id:int, quantity:int, destination_location_id):
-        url = f"{self.BASE_URL}/api/Warehouse/StockMovement?Action=15"
+    def transfer_stock(self,):
+        url = f"{self.BASE_URL}/api/Warehouse/TransferStock"
 
-        post_data ={
-        "ProductId": product_id,
-        "WarehouseId": warehouse_id,
-        "LocationId": source_location_id,
-        "Quantity": quantity,
-        "DestinationWarehouseId": warehouse_id,
-        "Comment": "Stock transfer for return",
-        "DestinationLocationId": destination_location_id,
+        data = {
+            "SourceWarehouseId": 3,
+            "SourceNameOrCode": "HC00000001",
+            "DestinationWarehouseId": 3,
+            "DestinationNameOrCode": "TC-00-1",
+            "ProductId": 74,
+            "Quantity": 1,
+            "Comment": "Test Carton Transfer",
         }
 
-        r = requests.post(
-            url, 
+        r = requests.put(
+            url,
+            json=data,
             headers=self.headers(),
-            json=post_data
+            timeout=30,
         )
 
-        data = r.json()
-        print(data)
         return r.json()
 
     def get_currencies(self):
