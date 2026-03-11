@@ -21,7 +21,7 @@ class MintsoftReturnService:
 
     def _get_merchant_name(self, data) -> str:
         """Get merchant name from event_data; supports both merchant_integration and line_items[0].merchant."""
-        event_data = data[0]["event_data"]
+        event_data = data["event_data"]
         try:
             return event_data["merchant_integration"]["merchant"]["name"]
         except (KeyError, TypeError):
@@ -91,7 +91,7 @@ class MintsoftReturnService:
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
                 print(m_return)
 
-                event_data = data[0]["event_data"]
+                event_data = data["event_data"]
                 line_items = event_data.get("line_items", [])
                 return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
 
@@ -147,7 +147,7 @@ class MintsoftReturnService:
         self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
-            event_data = data[0]["event_data"]
+            event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
             returned_product_map = {}
             
