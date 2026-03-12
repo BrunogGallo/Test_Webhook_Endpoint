@@ -35,7 +35,7 @@ def procesar_webhook(data):
 
         # Agregar items al return en caso de que sea interno
         if return_id[0] is not None:
-          return_service.add_return_items(return_id, data)
+          return_service.add_return_items(return_id[0], data)
 
           # Pasar items de RET o RET-QT a la caja del return si es Internal
           return_service.reallocate_return_items(data)
