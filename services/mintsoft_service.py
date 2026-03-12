@@ -270,8 +270,8 @@ class MintsoftReturnService:
                     "Quantity": item.get("quantity"),
                     "Comment": "Return reallocation",
                 } 
-            
             response = self.client.transfer_stock(reallocation_data)
+            print(response)
     
         return response
         
