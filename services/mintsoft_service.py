@@ -270,10 +270,8 @@ class MintsoftReturnService:
                     "Quantity": item.get("quantity"),
                     "Comment": "Return reallocation",
                 } 
-            try:
-                response = self.client.transfer_stock(reallocation_data)
-            except Exception as e:
-                print(e)
+            
+            response = self.client.transfer_stock(reallocation_data)
     
         return response
         
