@@ -267,7 +267,7 @@ class MintsoftReturnService:
                 reallocation_data = {
                     "SourceWarehouseId": 3,
                     "SourceNameOrCode": "RET-QT",
-                    "DestinationWarehouseId": item.get("warehouse"),
+                    "DestinationWarehouseId": warehouse,
                     "DestinationNameOrCode": item.get("put_away_bin"),
                     "ProductId": item.get("product_id"),
                     "Quantity": item.get("quantity"),
