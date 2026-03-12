@@ -219,7 +219,7 @@ class MintsoftReturnService:
                     "ReturnItemId": returned_product_map.get(product_id),
                     "LocationId": returns_location_id,
                     "Quantity": item.get("quantity"),
-                },
+                }
 
                 response = self.client.allocate_return_item_location(return_id, allocation_data)
                 self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
