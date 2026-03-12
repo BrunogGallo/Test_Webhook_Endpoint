@@ -156,6 +156,9 @@ class MintsoftReturnService:
             
             # Step 1: Add items to the return
             for item in line_items:
+                graded_attributes = item.get("graded_attributes") or []
+                return_photos = item.get("photo_urls", [])
+
                 disposition = item.get("disposition")
 
                 if disposition == "Return to Stock":
@@ -185,10 +188,10 @@ class MintsoftReturnService:
                     "Quantity": item.get("quantity"),
                     "ReturnReasonId": return_reason, 
                     "ProductId": product_id,
-                    "Action": "NONE",                    
+                    "Action": "NONE",
+                    "ReturnPhotos": return_photos                   
                 }
                 
-                graded_attributes = item.get("graded_attributes") or []
                 if graded_attributes:
                     ga = graded_attributes[0] or {}
                     mg = (ga.get("merchant_grading_attribute") or {}).get("grading_attribute") or {}
@@ -245,7 +248,7 @@ class MintsoftReturnService:
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock":
-                returns_location_id = 4104 # RET
+                returns_location_id = 2363 # RET
             else:
                 returns_location_id = 2363 # RET-QT
 
