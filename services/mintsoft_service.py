@@ -237,14 +237,19 @@ class MintsoftReturnService:
         line_items = event_data.get("line_items", [])
 
         for item in line_items:
-            location_id = item.get("return_location")
             sku = item.get("sku")
             product_id = self.client.get_product_id(sku)
             
             merchant = self._get_merchant_name(data)
             warehouse = map_warehouse(merchant)
 
-            if location_id == 4104:
+            disposition = item.get("disposition")
+            if disposition == "Return to Stock":
+                returns_location_id = 4104 # RET
+            else:
+                returns_location_id = 2363 # RET-QT
+
+            if returns_location_id == 4104:
                 reallocation_data = {
                     "SourceWarehouseId": 3,
                     "SourceNameOrCode": "RET",
