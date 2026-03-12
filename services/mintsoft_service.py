@@ -233,7 +233,6 @@ class MintsoftReturnService:
             return None
     
     def reallocate_return_items(self, data):
-        print(data)
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
 
@@ -246,7 +245,7 @@ class MintsoftReturnService:
             warehouse = map_warehouse(merchant)
 
             if location_id == 4104:
-                data = {
+                reallocation_data = {
                     "SourceWarehouseId": 3,
                     "SourceNameOrCode": "RET",
                     "DestinationWarehouseId": warehouse,
@@ -257,7 +256,7 @@ class MintsoftReturnService:
                 }
 
             else:
-                data = {
+                reallocation_data = {
                     "SourceWarehouseId": 3,
                     "SourceNameOrCode": "RET-QT",
                     "DestinationWarehouseId": item.get("warehouse"),
@@ -267,7 +266,7 @@ class MintsoftReturnService:
                     "Comment": "Return reallocation",
                 } 
             try:
-                response = self.client.transfer_stock(data)
+                response = self.client.transfer_stock(reallocation_data)
             except Exception as e:
                 print(e)
     
