@@ -77,21 +77,16 @@ class MintsoftReturnService:
         return None
 
     def create_return(self, data) -> Optional[int]:
-        orders = self.fetch_mintsoft_orders(data)
-
-        if orders is None:
-            return None
-
-        order_id = self.match_rma_order(orders, data)
-
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
+        if client_id is None:
+                print ("Client not in Mintsoft, return cannot be processed")
+                return None, "No Return Created"
+        
+        orders = self.fetch_mintsoft_orders(data)
+        order_id = self.match_rma_order(orders, data)
 
         try:
-            if client_id is None:
-                print ("Client not in Mintsoft, return cannot be processed")
-                return None
-
             if order_id is None: # Si es un external return
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
 
@@ -133,14 +128,14 @@ class MintsoftReturnService:
                 response = self.client.create_external_return(data=external_return_data)
 
                 self.logger.info(f"External return created. Response: {response}")
-                return None, "Completed" # Crea Return Externa (sin Order ID)
+                return None, "External Return Created" # Crea Return Externa (sin Order ID)
 
             # Si es un Internal Return
             self.logger.info(f"Order found (ID={order_id}). Creating standard return on Warehouse ID = {3}.")
             return_id = self.client.create_return(order_id, warehouse_id = 3)
 
             self.logger.info(f"Created return with ID: {return_id}")
-            return return_id
+            return return_id, "Internal Return Created"
 
         except Exception as e:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
