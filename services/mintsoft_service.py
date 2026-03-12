@@ -151,7 +151,7 @@ class MintsoftReturnService:
         self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
-            event_data = data.get("event_data")
+            event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
             returned_product_map = {}
             
@@ -238,14 +238,15 @@ class MintsoftReturnService:
             return None
     
     def reallocate_return_items(self, data):
-        event_data = data["event_data"]
+        print(data)
+        event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
 
         for item in line_items:
             location_id = item.get("return_location")
             sku = item.get("sku")
             product_id = self.client.get_product_id(sku)
-
+            
             merchant = self._get_merchant_name(data)
             warehouse = map_warehouse(merchant)
 
