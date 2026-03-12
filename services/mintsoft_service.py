@@ -248,7 +248,7 @@ class MintsoftReturnService:
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock":
-                returns_location_id = 2363 # RET
+                returns_location_id = 4104 # RET
             else:
                 returns_location_id = 2363 # RET-QT
 
