@@ -130,8 +130,8 @@ class MintsoftReturnService:
                 self.logger.info(f"External return created. ID: {external_return_id}")
 
                 response = self.client.confirm_return(external_return_id)
-
                 self.logger.info(f"External return confirmed. Response: {response}")
+
                 return None, "External Return Created" # Crea Return Externa (sin Order ID)
 
             # Si es un Internal Return
@@ -144,6 +144,31 @@ class MintsoftReturnService:
         except Exception as e:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
             return None
+        
+    def allocate_internal_return_items(self, return_id: int):
+        
+        return_details = self.client.get_return_details(return_id)
+        return_items = return_details.get('ReturnItems')
+
+        for item in return_items:
+            return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
+            
+            if return_reason == 1:
+                location_id = 4104 # RET
+            else:
+                location_id = 2363 # RET-QT
+
+            data = {
+                'ReturnItemId': item.get('ID'),
+                'Quantity': item.get('Quantity'),
+                'LocationId': location_id
+
+            }
+
+            response = self.client.allocate_return_item_location(return_id, data)
+            self.logger.info(f"Allocated Internal Return Items: {response}")
+        
+        return None
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
 

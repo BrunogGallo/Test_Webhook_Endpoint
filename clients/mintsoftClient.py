@@ -195,7 +195,18 @@ class MintsoftOrderClient:
         r.raise_for_status()
         data = r.json()
         print(data)
-        return data    
+        return data
+
+    def get_return_details(self, return_id):
+        url = f"{self.BASE_URL}/api/Return/{return_id}"
+
+        r = requests.get(
+            url,
+            headers=self.headers(),
+            timeout=30
+        )
+        r.raise_for_status()
+        return r.json() 
     
     def get_product_id(self, sku:str):
         url = f"{self.BASE_URL}//api/Product/Search?Search={sku}"
