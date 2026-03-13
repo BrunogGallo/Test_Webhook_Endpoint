@@ -132,7 +132,7 @@ class MintsoftReturnService:
                 response = self.client.confirm_return(external_return_id)
                 self.logger.info(f"External return confirmed. Response: {response}")
 
-                return None, "External Return Created" # Crea Return Externa (sin Order ID)
+                return response, "External Return Created" # Crea Return Externa (con el Order ID)
 
             # Si es un Internal Return
             self.logger.info(f"Order found (ID={order_id}). Creating standard return on Warehouse ID = {3}.")
@@ -162,7 +162,6 @@ class MintsoftReturnService:
                 'ReturnItemId': item.get('ID'),
                 'Quantity': item.get('Quantity'),
                 'LocationId': location_id
-
             }
 
             response = self.client.allocate_return_item_location(return_id, data)
