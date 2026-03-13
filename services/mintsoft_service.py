@@ -125,9 +125,13 @@ class MintsoftReturnService:
                     })
 
                 print(external_return_data)
-                response = self.client.create_external_return(data=external_return_data)
+                external_return_id = self.client.create_external_return(data=external_return_data)
 
-                self.logger.info(f"External return created. Response: {response}")
+                self.logger.info(f"External return created. ID: {external_return_id}")
+
+                response = self.client.confirm_return(external_return_id)
+
+                self.logger.info(f"External return confirmed. Response: {response}")
                 return None, "External Return Created" # Crea Return Externa (sin Order ID)
 
             # Si es un Internal Return
