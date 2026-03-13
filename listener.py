@@ -17,7 +17,6 @@ session = requests.Session()
 def enviar_a_google_async(datos):
     """Función para enviar datos en segundo plano"""
     try:
-        # Use the session instead of requests.post
         session.post(GAS_URL, json=datos, timeout=30)
         print("✅ Enviado a Google Apps Script correctamente")
     except Exception as e:
@@ -40,10 +39,10 @@ def procesar_webhook(data):
           # Pasar items de RET o RET-QT a la caja del return si es Internal
           return_service.reallocate_return_items(data)
 
-        print("Webhook processed successfully")
+        print("Webhook procesado con exito")
         
     except Exception as e:
-        print(f"Error processing webhook: {e}")
+        print(f"Error procesando webhook: {e}")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
