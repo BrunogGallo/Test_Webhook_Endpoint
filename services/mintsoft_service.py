@@ -129,8 +129,8 @@ class MintsoftReturnService:
 
                 self.logger.info(f"External return created. ID: {external_return_id}")
 
-                response = self.client.confirm_return(external_return_id)
-                self.logger.info(f"External return confirmed. Response: {external_return_id}")
+                # self.client.confirm_return(external_return_id)
+                # self.logger.info(f"External return confirmed. Response: {external_return_id}")
 
                 return external_return_id, "External Return Created" # Crea Return Externa (con el Order ID)
 
@@ -145,7 +145,7 @@ class MintsoftReturnService:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
             return None
         
-    def allocate_internal_return_items(self, return_id: int):
+    def allocate_external_return_items(self, return_id: int):
         
         return_details = self.client.get_return_details(return_id)
         return_items = return_details.get('ReturnItems')
@@ -165,7 +165,7 @@ class MintsoftReturnService:
             }
 
             response = self.client.allocate_return_item_location(return_id, data)
-            self.logger.info(f"Allocated Internal Return Items: {response}")
+            self.logger.info(f"Allocated External Return Items: {response}")
         
         return None
 

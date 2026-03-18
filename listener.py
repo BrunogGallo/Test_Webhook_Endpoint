@@ -31,7 +31,7 @@ def procesar_webhook(data):
         # Pasar items de RET o RET-QT a la caja del return si es External
         if return_id[1] == "External Return Created":
           # Pasar items a RET o RET-QT
-          return_service.allocate_internal_return_items(return_id[0])
+          return_service.allocate_external_return_items(return_id[0])
 
           # Pasar items de RET o RET-QT a la caja del return si es External
           return_service.reallocate_return_items(data)
