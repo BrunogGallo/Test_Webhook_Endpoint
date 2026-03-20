@@ -149,30 +149,30 @@ class MintsoftReturnService:
     def allocate_external_return_items(self, return_id: int):
         
         try: 
-        return_details = self.client.get_return_details(return_id)
-        return_items = return_details.get('ReturnItems')
+            return_details = self.client.get_return_details(return_id)
+            return_items = return_details.get('ReturnItems')
 
-        for item in return_items:
-            return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
-            
-            if return_reason == 1:
-                location_id = 4104 # RET
-            else:
-                location_id = 2363 # RET-QT
+            for item in return_items:
+                return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
+                
+                if return_reason == 1:
+                    location_id = 4104 # RET
+                else:
+                    location_id = 2363 # RET-QT
 
-            data = {
-                'ReturnItemId': item.get('ID'),
-                'Quantity': item.get('Quantity'),
-                'LocationId': location_id
-            }
+                data = {
+                    'ReturnItemId': item.get('ID'),
+                    'Quantity': item.get('Quantity'),
+                    'LocationId': location_id
+                }
 
-            response = self.client.allocate_return_item_location(return_id, data)
-            self.logger.info(f"Allocated External Return Items: {response}")
+                response = self.client.allocate_return_item_location(return_id, data)
+                self.logger.info(f"Allocated External Return Items: {response}")
 
         except Exception as e:
             self.logger.error(f"Error allocating external return items: {e}", exc_info=True)
             return None
-            
+
         return None
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
