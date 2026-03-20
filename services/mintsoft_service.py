@@ -285,7 +285,7 @@ class MintsoftReturnService:
                 else:
                     warehouse = 3 #Emilia Wholesale
             else:
-            warehouse = map_warehouse(merchant)
+                warehouse = map_warehouse(merchant)
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock":
