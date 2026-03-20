@@ -106,7 +106,7 @@ class MintsoftReturnService:
                     else:
                         warehouse = 3 #Emilia Wholesale
                 else:
-                    warehouse = map_warehouse(merchant)
+                    warehouse = map_warehouse(merchant_name)
 
                 external_return_data= {
                     "Reference": return_identifier,
@@ -287,7 +287,7 @@ class MintsoftReturnService:
             product_id = self.client.get_product_id(sku)
             
             merchant = self._get_merchant_name(data)
-            if merchant is "Test Client":
+            if merchant == "Test Client":
                 if order_number.startswith("#"):
                     warehouse = 5 #Emilia E-Comm
                 else:
