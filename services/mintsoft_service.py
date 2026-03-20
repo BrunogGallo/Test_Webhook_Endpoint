@@ -80,7 +80,7 @@ class MintsoftReturnService:
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
         warehouse = map_warehouse(merchant_name)
-        
+
         if client_id is None:
                 print ("Client not in Mintsoft, return cannot be processed")
                 return None, "No Return Created"
@@ -290,7 +290,7 @@ class MintsoftReturnService:
 
             if returns_location_id == 4104:
                 reallocation_data = {
-                    "SourceWarehouseId": 3,
+                    "SourceWarehouseId": warehouse,
                     "SourceNameOrCode": "RET",
                     "DestinationWarehouseId": warehouse,
                     "DestinationNameOrCode": item.get("put_away_bin"),
@@ -301,7 +301,7 @@ class MintsoftReturnService:
 
             else:
                 reallocation_data = {
-                    "SourceWarehouseId": 3,
+                    "SourceWarehouseId": warehouse,
                     "SourceNameOrCode": "RET-QT",
                     "DestinationWarehouseId": warehouse,
                     "DestinationNameOrCode": item.get("put_away_bin"),
