@@ -272,12 +272,19 @@ class MintsoftReturnService:
     def reallocate_return_items(self, data):
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
+        order_number = line_items[0].get("storefront_order_number")
 
         for item in line_items:
             sku = item.get("sku")
             product_id = self.client.get_product_id(sku)
             
             merchant = self._get_merchant_name(data)
+            if merchant is "Test Client":
+                if order_number.startswith("#"):
+                    warehouse = 5 #Emilia E-Comm
+                else:
+                    warehouse = 3 #Emilia Wholesale
+            else:
             warehouse = map_warehouse(merchant)
 
             disposition = item.get("disposition")
