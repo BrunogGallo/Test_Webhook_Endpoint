@@ -167,8 +167,8 @@ class MintsoftReturnService:
                 }
 
                 response = self.client.allocate_return_item_location(return_id, data)
-                self.logger.info(f"Allocated External Return Items: {response}")
-
+                self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
+                
         except Exception as e:
             self.logger.error(f"Error allocating external return items: {e}", exc_info=True)
             return None
