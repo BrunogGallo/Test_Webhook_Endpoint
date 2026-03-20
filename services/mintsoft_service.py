@@ -79,6 +79,8 @@ class MintsoftReturnService:
     def create_return(self, data) -> Optional[int]:
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
+        warehouse = map_warehouse(merchant_name)
+        
         if client_id is None:
                 print ("Client not in Mintsoft, return cannot be processed")
                 return None, "No Return Created"
@@ -99,14 +101,6 @@ class MintsoftReturnService:
                     customer_email = event_data["customer"].get("email")
                     new_identifier = f"{completed_at}-{customer_email}"
                     return_identifier = new_identifier
-
-                if merchant_name == "Test Client":
-                    if order_number.startswith("#"):
-                        warehouse = 5 #Emilia E-Comm
-                    else:
-                        warehouse = 3 #Emilia Wholesale
-                else:
-                    warehouse = map_warehouse(merchant_name)
 
                 external_return_data= {
                     "Reference": return_identifier,
@@ -285,15 +279,8 @@ class MintsoftReturnService:
         for item in line_items:
             sku = item.get("sku")
             product_id = self.client.get_product_id(sku)
-            
             merchant = self._get_merchant_name(data)
-            if merchant == "Test Client":
-                if order_number.startswith("#"):
-                    warehouse = 5 #Emilia E-Comm
-                else:
-                    warehouse = 3 #Emilia Wholesale
-            else:
-                warehouse = map_warehouse(merchant)
+            warehouse = map_warehouse(merchant)
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock":
