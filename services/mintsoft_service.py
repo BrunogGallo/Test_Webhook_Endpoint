@@ -100,7 +100,7 @@ class MintsoftReturnService:
                     new_identifier = f"{completed_at}-{customer_email}"
                     return_identifier = new_identifier
 
-                if merchant is "Test Client":
+                if merchant_name == "Test Client":
                     if order_number.startswith("#"):
                         warehouse = 5 #Emilia E-Comm
                     else:
