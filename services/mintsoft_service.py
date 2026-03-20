@@ -320,19 +320,12 @@ class MintsoftReturnService:
                 print(response)
 
             else: # Stock a mandar a cuarentena
+
                 if warehouse == 3:
                     temporary_location_id = 2363 # RET-QT Wholesale
                 else:
                     temporary_location_id = 4300 # RET-QT E-Comm
 
-                # quarantine_data = {
-                #     "ProductID": product_id,
-                #     "WarehouseId": warehouse,
-                #     "LocationId": temporary_location_id,
-                #     "Quantity": item.get("quantity"), 
-                #     "Comment": "Returned stock sent to Quarantine"
-                # }
-                
                 reallocation_data = {
                     "SourceWarehouseId": warehouse,
                     "SourceNameOrCode": "RET-QT",
@@ -340,15 +333,24 @@ class MintsoftReturnService:
                     "DestinationNameOrCode": item.get("put_away_bin"),
                     "ProductId": product_id,
                     "Quantity": item.get("quantity"),
-                    "Type": "Allocation_OffHand",
+                    "Type": "Quarantine",
                     "Comment": "Return reallocation",
                 }
-                
-                # self.client.quarantine_stock(quarantine_data)
-                # self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
 
+                quarantine_data = {
+                    "ProductID": product_id,
+                    "WarehouseId": warehouse,
+                    "LocationId": temporary_location_id,
+                    "Quantity": item.get("quantity"), 
+                    "Comment": "Returned stock sent to Quarantine"
+                }
+                
                 response = self.client.transfer_stock(reallocation_data)
                 print(response)
+
+                self.client.quarantine_stock(quarantine_data)
+                self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+
     
         return response
         
