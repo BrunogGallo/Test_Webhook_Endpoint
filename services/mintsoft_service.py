@@ -129,6 +129,7 @@ class MintsoftReturnService:
 
                 self.logger.info(f"External return created. ID: {external_return_id}")
 
+                ## Confirmar el return agrega un item a Location Unassigned
                 # self.client.confirm_return(external_return_id)
                 # self.logger.info(f"External return confirmed. Response: {external_return_id}")
 
@@ -147,6 +148,7 @@ class MintsoftReturnService:
         
     def allocate_external_return_items(self, return_id: int):
         
+        try: 
         return_details = self.client.get_return_details(return_id)
         return_items = return_details.get('ReturnItems')
 
@@ -166,7 +168,11 @@ class MintsoftReturnService:
 
             response = self.client.allocate_return_item_location(return_id, data)
             self.logger.info(f"Allocated External Return Items: {response}")
-        
+
+        except Exception as e:
+            self.logger.error(f"Error allocating external return items: {e}", exc_info=True)
+            return None
+            
         return None
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
