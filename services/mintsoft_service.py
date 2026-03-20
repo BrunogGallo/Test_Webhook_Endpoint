@@ -100,10 +100,18 @@ class MintsoftReturnService:
                     new_identifier = f"{completed_at}-{customer_email}"
                     return_identifier = new_identifier
 
+                if merchant is "Test Client":
+                    if order_number.startswith("#"):
+                        warehouse = 5 #Emilia E-Comm
+                    else:
+                        warehouse = 3 #Emilia Wholesale
+                else:
+                    warehouse = map_warehouse(merchant)
+
                 external_return_data= {
                     "Reference": return_identifier,
                     "ClientId": client_id,
-                    "WarehouseId": 3, # Inicialmente siempre van a RET o RET-QT
+                    "WarehouseId": warehouse,
                     "ReturnItems": [],
                 }
                 for item in line_items:
