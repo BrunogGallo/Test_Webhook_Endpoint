@@ -340,6 +340,7 @@ class MintsoftReturnService:
                     "DestinationNameOrCode": item.get("put_away_bin"),
                     "ProductId": product_id,
                     "Quantity": item.get("quantity"),
+                    "Type": "Quarantine",
                     "Comment": "Return reallocation",
                 }
                 
