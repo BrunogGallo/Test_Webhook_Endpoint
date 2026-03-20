@@ -151,6 +151,18 @@ class MintsoftOrderClient:
 
         return r.json()
 
+    def quarantine_stock(self, action, request):
+        url = f"{self.BASE_URL}/api/Warehouse/StockMovement?Action={action}"
+
+        r = requests.post(
+            url=url,
+            headers=self.headers(),
+            json=request,
+            timeout=30
+        )
+
+        return r.json()
+
     def get_currencies(self):
         url = f"{self.BASE_URL}/api/RefData/Currencies"
 

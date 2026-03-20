@@ -148,32 +148,37 @@ class MintsoftReturnService:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
             return None
         
-    def allocate_external_return_items(self, return_id: int):
+    def allocate_external_return_items(self, data, return_id: int):
+        merchant_name = self._get_merchant_name(data)
+        warehouse = map_warehouse(merchant_name)
         
-        try: 
-            return_details = self.client.get_return_details(return_id)
-            return_items = return_details.get('ReturnItems')
+        return_details = self.client.get_return_details(return_id)
+        return_items = return_details.get('ReturnItems')
 
-            for item in return_items:
-                return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
-                
-                if return_reason == 1:
-                    location_id = 4104 # RET
+        for item in return_items:
+            return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
+            
+            if return_reason == 1: # Si esta en buena condicion
+                if warehouse == 3:
+                    location_id = 4104 # RET Wholesale
                 else:
-                    location_id = 2363 # RET-QT
+                    location_id = 4299 # RET E-Commerce
 
-                data = {
-                    'ReturnItemId': item.get('ID'),
-                    'Quantity': item.get('Quantity'),
-                    'LocationId': location_id
-                }
+            else: # Si esta en mala condicion
+                if warehouse == 3:
+                    location_id = 2363 # RET-QT Wholesale
+                else:
+                    location_id = 4300 # RET-QT E-Comm
 
-                response = self.client.allocate_return_item_location(return_id, data)
-                self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
+            data = {
+                'ReturnItemId': item.get('ID'),
+                'Quantity': item.get('Quantity'),
+                'LocationId': location_id
+            }
 
-        except Exception as e:
-            self.logger.error(f"Error allocating external return items: {e}", exc_info=True)
-            return None
+            response = self.client.allocate_return_item_location(return_id, data)
+            self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
+
 
         return None
 
@@ -184,6 +189,7 @@ class MintsoftReturnService:
         try:
             event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
+            
             returned_product_map = {}
             
             if not line_items:
@@ -250,6 +256,22 @@ class MintsoftReturnService:
         
             for item in line_items:
                 product_id = self.client.get_product_id(sku)
+                merchant = self._get_merchant_name(data)
+                warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
+                disposition = item.get("disposition")
+
+                if disposition == "Return to Stock":
+                    if warehouse == 3:
+                        returns_location_id = 4104 # RET
+                    else:
+                        returns_location_id = 4299 # RET
+
+                else:
+                    if warehouse == 3:
+                        location_id = 2363 # RET-QT Wholesale
+                    else:
+                        location_id = 4300 # RET-QT E-Comm
+
 
                 allocation_data = {
                     "ReturnItemId": returned_product_map.get(product_id),
@@ -274,34 +296,58 @@ class MintsoftReturnService:
     def reallocate_return_items(self, data):
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
-        order_number = line_items[0].get("storefront_order_number")
 
         for item in line_items:
             sku = item.get("sku")
             product_id = self.client.get_product_id(sku)
             merchant = self._get_merchant_name(data)
-            warehouse = map_warehouse(merchant)
+            warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
 
             disposition = item.get("disposition")
-            if disposition == "Return to Stock":
-                returns_location_id = 4104
-                current_location = "RET"
-            else:
-                returns_location_id = 2363
-                current_location = "RET-QT"
+            if disposition == "Return to Stock": # Stock en buenas condiciones
+
+                reallocation_data = {
+                    "SourceWarehouseId": warehouse,
+                    "SourceNameOrCode": "RET",
+                    "DestinationWarehouseId": warehouse,
+                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "ProductId": product_id,
+                    "Quantity": item.get("quantity"),
+                    "Comment": "Return reallocation",
+                }
+
+                response = self.client.transfer_stock(reallocation_data)
+                print(response)
+
+            else: # Stock a mandar a cuarentena
+                if warehouse == 3:
+                    temporary_location_id = 2363 # RET-QT Wholesale
+                else:
+                    temporary_location_id = 4300 # RET-QT E-Comm
+
+                quarantine_data = {
+                    "ProductID": product_id,
+                    "WarehouseId": warehouse,
+                    "LocationId": temporary_location_id,
+                    "Quantity": item.get("quantity"), 
+                    "Comment": "Returned stock sent to Quarantine"
+                }
                 
-            reallocation_data = {
-                "SourceWarehouseId": 3,
-                "SourceNameOrCode": current_location,
-                "DestinationWarehouseId": warehouse,
-                "DestinationNameOrCode": item.get("put_away_bin"),
-                "ProductId": product_id,
-                "Quantity": item.get("quantity"),
-                "Comment": "Return reallocation",
-            }
-    
-            response = self.client.transfer_stock(reallocation_data)
-            print(response)
+                reallocation_data = {
+                    "SourceWarehouseId": warehouse,
+                    "SourceNameOrCode": "RET-QT",
+                    "DestinationWarehouseId": warehouse,
+                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "ProductId": product_id,
+                    "Quantity": item.get("quantity"),
+                    "Comment": "Return reallocation",
+                }
+                
+                self.client.quarantine_stock(quarantine_data)
+                self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+
+                response = self.client.transfer_stock(reallocation_data)
+                print(response)
     
         return response
         
