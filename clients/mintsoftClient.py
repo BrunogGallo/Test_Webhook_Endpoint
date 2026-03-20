@@ -151,7 +151,7 @@ class MintsoftOrderClient:
 
         return r.json()
 
-    def quarantine_stock(self, action, request):
+    def quarantine_stock(self, action):
         url = f"{self.BASE_URL}/api/Warehouse/StockMovement?Action=7"
 
         r = requests.post(
