@@ -284,31 +284,22 @@ class MintsoftReturnService:
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock":
-                returns_location_id = 4104 # RET
+                returns_location_id = 4104
+                current_location = "RET"
             else:
-                returns_location_id = 2363 # RET-QT
-
-            if returns_location_id == 4104:
-                reallocation_data = {
-                    "SourceWarehouseId": warehouse,
-                    "SourceNameOrCode": "RET",
-                    "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": item.get("put_away_bin"),
-                    "ProductId": product_id,
-                    "Quantity": item.get("quantity"),
-                    "Comment": "Return reallocation",
-                }
-
-            else:
-                reallocation_data = {
-                    "SourceWarehouseId": warehouse,
-                    "SourceNameOrCode": "RET-QT",
-                    "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": item.get("put_away_bin"),
-                    "ProductId": item.get("product_id"),
-                    "Quantity": item.get("quantity"),
-                    "Comment": "Return reallocation",
-                } 
+                returns_location_id = 2363
+                current_location = "RET-QT"
+                
+            reallocation_data = {
+                "SourceWarehouseId": 3,
+                "SourceNameOrCode": current_location,
+                "DestinationWarehouseId": warehouse,
+                "DestinationNameOrCode": item.get("put_away_bin"),
+                "ProductId": product_id,
+                "Quantity": item.get("quantity"),
+                "Comment": "Return reallocation",
+            }
+    
             response = self.client.transfer_stock(reallocation_data)
             print(response)
     
