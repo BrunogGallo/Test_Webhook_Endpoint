@@ -325,13 +325,13 @@ class MintsoftReturnService:
                 else:
                     temporary_location_id = 4300 # RET-QT E-Comm
 
-                quarantine_data = {
-                    "ProductID": product_id,
-                    "WarehouseId": warehouse,
-                    "LocationId": temporary_location_id,
-                    "Quantity": item.get("quantity"), 
-                    "Comment": "Returned stock sent to Quarantine"
-                }
+                # quarantine_data = {
+                #     "ProductID": product_id,
+                #     "WarehouseId": warehouse,
+                #     "LocationId": temporary_location_id,
+                #     "Quantity": item.get("quantity"), 
+                #     "Comment": "Returned stock sent to Quarantine"
+                # }
                 
                 reallocation_data = {
                     "SourceWarehouseId": warehouse,
@@ -344,8 +344,8 @@ class MintsoftReturnService:
                     "Comment": "Return reallocation",
                 }
                 
-                self.client.quarantine_stock(quarantine_data)
-                self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+                # self.client.quarantine_stock(quarantine_data)
+                # self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
 
                 response = self.client.transfer_stock(reallocation_data)
                 print(response)
