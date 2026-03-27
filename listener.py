@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 import os
 import requests
+from requests.adapters import HTTPAdapter
 from concurrent.futures import ThreadPoolExecutor
 from services.mintsoft_service import MintsoftReturnService
+from urllib3.util.retry import Retry
 
 app = Flask(__name__)
 return_service = MintsoftReturnService()
@@ -12,7 +14,15 @@ GAS_URL = os.environ.get("GAS_URL")
 
 executor = ThreadPoolExecutor(max_workers=10)
 
+# Configuración de reintentos
 session = requests.Session()
+retries = Retry(
+    total=5,               # Reintentos
+    backoff_factor=0.3,    # Esperar 0.3 mas con cada reintento
+    status_forcelist=[502, 503, 504], # Reintentar si el servidor de Google está saturado
+    raise_on_status=False
+)
+session.mount('https://', HTTPAdapter(max_retries=retries))
 
 def enviar_a_google_async(datos):
     """Función para enviar datos en segundo plano"""
