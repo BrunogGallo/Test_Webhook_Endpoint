@@ -62,7 +62,7 @@ def procesar_webhook(data):
 def webhook():
     token = request.headers.get("x-two-boxes-authorization")
     if not token or token != WEBHOOK_SECRET:
-        print("Unauthorized Access Request")
+        print(f"Unauthorized Access Request {request.get_json(silent=True)}")
         return jsonify({"error": "Unauthorized"}), 401
     
     raw_data = request.get_json(silent=True)
