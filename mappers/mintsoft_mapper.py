@@ -21,7 +21,7 @@ clients = [
   # { "m_name": "Staple & Hue", "m_id": 21, "tb_name": "staple & hue", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Theo", "m_id": 14, "tb_name": "theo", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Third Form", "m_id": 22, "tb_name": "third form", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  # { "m_name": "TT Studios", "m_id": 7, "tb_name": "tt studios", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "TT Studios", "m_id": 7, "tb_name": "tt studios", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Ziah", "m_id": 26, "tb_name": "ziah", "tb_rma_prov": "Work Capture", "warehouse_id": 3}
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5}
