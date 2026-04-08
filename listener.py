@@ -27,7 +27,7 @@ session.mount('https://', HTTPAdapter(max_retries=retries))
 def enviar_a_google_async(datos):
     """Función para enviar datos en segundo plano"""
     try:
-        session.post(GAS_URL, json=datos, timeout=30)
+        session.post(GAS_URL, json=datos, timeout=50)
         print("✅ Enviado a Google Apps Script correctamente")
     except Exception as e:
         print(f"❌ Error enviando a Google: {e}")
