@@ -268,9 +268,9 @@ class MintsoftReturnService:
 
                 else:
                     if warehouse == 3:
-                        location_id = 2363 # RET-QT Wholesale
+                        returns_location_id = 2363 # RET-QT Wholesale
                     else:
-                        location_id = 4300 # RET-QT E-Comm
+                        returns_location_id = 4300 # RET-QT E-Comm
 
 
                 allocation_data = {
@@ -302,6 +302,7 @@ class MintsoftReturnService:
             product_id = self.client.get_product_id(sku)
             merchant = self._get_merchant_name(data)
             warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
+            carton_code = item.get("put_away_bin")
 
             disposition = item.get("disposition")
             if disposition == "Return to Stock": # Stock en buenas condiciones
@@ -310,11 +311,28 @@ class MintsoftReturnService:
                     "SourceWarehouseId": warehouse,
                     "SourceNameOrCode": "RET",
                     "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "DestinationNameOrCode": carton_code,
                     "ProductId": product_id,
                     "Quantity": item.get("quantity"),
                     "Comment": "Return reallocation",
                 }
+
+                if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                    client_id = map_client(merchant)
+
+                    if warehouse == 3:
+                        returns_location_id = 4104 # RET
+                    else:
+                        returns_location_id = 4299 # RET
+
+                    carton_data = {
+                        "WarehouseId": warehouse,
+                        "StorageMediaName": "Stock",
+                        "Code": carton_code,
+                        "LocationId": returns_location_id
+                    }
+
+                    self.client.create_carton(carton_data, client_id)
 
                 response = self.client.transfer_stock(reallocation_data)
                 print(response)
@@ -330,7 +348,7 @@ class MintsoftReturnService:
                     "SourceWarehouseId": warehouse,
                     "SourceNameOrCode": "RET-QT",
                     "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": item.get("put_away_bin"),
+                    "DestinationNameOrCode": carton_code,
                     "ProductId": product_id,
                     "Quantity": item.get("quantity"),
                     "Type": "Quarantine",
@@ -344,6 +362,18 @@ class MintsoftReturnService:
                     "Quantity": item.get("quantity"), 
                     "Comment": "Returned stock sent to Quarantine"
                 }
+
+                if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                    client_id = map_client(merchant)
+
+                    carton_data = {
+                        "WarehouseId": warehouse,
+                        "StorageMediaName": "Stock",
+                        "Code": carton_code,
+                        "LocationId": temporary_location_id
+                    }
+
+                    self.client.create_carton(carton_data, client_id)
                 
                 response = self.client.transfer_stock(reallocation_data)
                 print(response)

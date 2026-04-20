@@ -30,7 +30,7 @@ class MintsoftOrderClient:
             "Password": self.password,
         }
 
-        r = requests.post(url, json=payload, timeout=30)
+        r = requests.post(url, json=payload, timeout=60)
         r.raise_for_status()
         print(r.json())
         return r.json()
@@ -51,7 +51,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -93,7 +93,7 @@ class MintsoftOrderClient:
             url,
             headers=self.headers(),
             json=item_data,
-            timeout=30
+            timeout=60
         )
         r.raise_for_status()
         return r.json()
@@ -108,7 +108,7 @@ class MintsoftOrderClient:
         r = requests.post(
             url,
             headers=self.headers(),
-            timeout=30
+            timeout=60
         )
         r.raise_for_status()
         return r.json()
@@ -119,7 +119,7 @@ class MintsoftOrderClient:
         r = requests.post(
             url,
             headers=self.headers(),
-            timeout=30
+            timeout=60
         )
         r.raise_for_status()
         return r.json()
@@ -130,7 +130,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -146,7 +146,7 @@ class MintsoftOrderClient:
             url,
             json=data,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         return r.json()
@@ -158,7 +158,7 @@ class MintsoftOrderClient:
             url=url,
             headers=self.headers(),
             json=request,
-            timeout=30
+            timeout=60
         )
 
         return r.json()
@@ -169,7 +169,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -185,7 +185,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -201,7 +201,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -215,7 +215,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30
+            timeout=60
         )
         r.raise_for_status()
         return r.json() 
@@ -226,7 +226,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=30,
+            timeout=60,
         )
 
         r.raise_for_status()
@@ -234,3 +234,27 @@ class MintsoftOrderClient:
         product_id = data[0]["ID"] if data else None
         print(f"Product ID for SKU {sku}: {product_id}")
         return product_id
+    
+    def check_carton (self, carton_code):
+        url = f'{self.BASE_URL}/api/StorageMedia/ValidateCarton?cartonCode={carton_code}'
+
+        response = requests.get(url, headers=self.headers())
+
+        json = response.json()
+
+        message = json.get("Message")
+
+        if message.startswith("Could not find a Carton with the code"):
+            
+            return False
+        
+        else:
+
+            return True
+
+    def create_carton(self, carton_data, client_id):
+        url = f'{self.BASE_URL}/api/StorageMedia/CreateCarton?autoGenerateSSCC=false&clientId={client_id}'
+
+        r = requests.post(url, json = carton_data, headers=self.headers())
+
+        return None
