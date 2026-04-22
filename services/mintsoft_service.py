@@ -154,21 +154,20 @@ class MintsoftReturnService:
         
         return_details = self.client.get_return_details(return_id)
         return_items = return_details.get('ReturnItems')
-
+            
         for item in return_items:
             return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
-            
             if return_reason == 1: # Si esta en buena condicion
                 if warehouse == 3:
                     location_id = 4104 # RET Wholesale
                 else:
                     location_id = 4299 # RET E-Commerce
-
+            
             else: # Si esta en mala condicion
                 if warehouse == 3:
-                    location_id = 2363 # RET-QT Wholesale
+                    location_id = 9 # RET-TEMP Wholesale
                 else:
-                    location_id = 4300 # RET-QT E-Comm
+                    location_id = 4304 # RET-TEMP E-Commerce
 
             data = {
                 'ReturnItemId': item.get('ID'),
@@ -178,7 +177,6 @@ class MintsoftReturnService:
 
             response = self.client.allocate_return_item_location(return_id, data)
             self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
-
 
         return None
 
@@ -268,9 +266,9 @@ class MintsoftReturnService:
 
                 else:
                     if warehouse == 3:
-                        returns_location_id = 2363 # RET-QT Wholesale
+                        returns_location_id = 9 # RET-TEMP Wholesale
                     else:
-                        returns_location_id = 4300 # RET-QT E-Comm
+                        returns_location_id = 4304 # RET-TEMP E-Comm
 
 
                 allocation_data = {
@@ -318,12 +316,13 @@ class MintsoftReturnService:
                 }
 
                 if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                    print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
                     client_id = map_client(merchant)
 
                     if warehouse == 3:
-                        returns_location_id = 4104 # RET
+                        returns_location_id = 4104 # RET Wholesale
                     else:
-                        returns_location_id = 4299 # RET
+                        returns_location_id = 4299 # RET Ecom
 
                     carton_data = {
                         "WarehouseId": warehouse,
@@ -340,13 +339,13 @@ class MintsoftReturnService:
             else: # Stock a mandar a cuarentena
 
                 if warehouse == 3:
-                    temporary_location_id = 2363 # RET-QT Wholesale
+                    temporary_location_id = 9 # RET-QT Wholesale
                 else:
-                    temporary_location_id = 4300 # RET-QT E-Comm
+                    temporary_location_id = 4304 # RET-TEMP E-Comm
 
                 reallocation_data = {
                     "SourceWarehouseId": warehouse,
-                    "SourceNameOrCode": "RET-QT",
+                    "SourceNameOrCode": "RET-TEMP",
                     "DestinationWarehouseId": warehouse,
                     "DestinationNameOrCode": carton_code,
                     "ProductId": product_id,
@@ -364,6 +363,7 @@ class MintsoftReturnService:
                 }
 
                 if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                    print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
                     client_id = map_client(merchant)
 
                     carton_data = {
@@ -375,11 +375,11 @@ class MintsoftReturnService:
 
                     self.client.create_carton(carton_data, client_id)
                 
-                response = self.client.transfer_stock(reallocation_data)
-                print(response)
-
                 self.client.quarantine_stock(quarantine_data)
                 self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+
+                response = self.client.transfer_stock(reallocation_data)
+                print(response)
 
     
         return response

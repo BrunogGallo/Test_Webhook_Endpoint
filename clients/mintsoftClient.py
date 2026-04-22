@@ -30,7 +30,7 @@ class MintsoftOrderClient:
             "Password": self.password,
         }
 
-        r = requests.post(url, json=payload, timeout=60)
+        r = requests.post(url, json=payload, timeout=120)
         r.raise_for_status()
         print(r.json())
         return r.json()
@@ -51,7 +51,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
@@ -93,7 +93,7 @@ class MintsoftOrderClient:
             url,
             headers=self.headers(),
             json=item_data,
-            timeout=60
+            timeout=120
         )
         r.raise_for_status()
         return r.json()
@@ -108,7 +108,7 @@ class MintsoftOrderClient:
         r = requests.post(
             url,
             headers=self.headers(),
-            timeout=60
+            timeout=120
         )
         r.raise_for_status()
         return r.json()
@@ -119,7 +119,7 @@ class MintsoftOrderClient:
         r = requests.post(
             url,
             headers=self.headers(),
-            timeout=60
+            timeout=120
         )
         r.raise_for_status()
         return r.json()
@@ -130,7 +130,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
@@ -146,7 +146,7 @@ class MintsoftOrderClient:
             url,
             json=data,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         return r.json()
@@ -158,7 +158,7 @@ class MintsoftOrderClient:
             url=url,
             headers=self.headers(),
             json=request,
-            timeout=60
+            timeout=120
         )
 
         return r.json()
@@ -169,7 +169,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
@@ -185,7 +185,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
@@ -201,7 +201,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
@@ -215,7 +215,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60
+            timeout=120
         )
         r.raise_for_status()
         return r.json() 
@@ -226,7 +226,7 @@ class MintsoftOrderClient:
         r = requests.get(
             url,
             headers=self.headers(),
-            timeout=60,
+            timeout=120,
         )
 
         r.raise_for_status()
