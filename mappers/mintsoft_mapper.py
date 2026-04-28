@@ -14,7 +14,7 @@ clients = [
   # { "m_name": "Lou Swim", "m_id": 25, "tb_name": "lou swim", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Maggie The Label", "m_id": 27, "tb_name": "maggie the label", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Nude Lucy", "m_id": 16, "tb_name": "nude lucy", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  # { "m_name": "Pink City Prints", "m_id": 15, "tb_name": "pink city prints", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Pink City Prints", "m_id": 15, "tb_name": "pink city prints", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Rove", "m_id": 8, "tb_name": "rove", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Sancia", "m_id": 23, "tb_name": "sancia", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Shirty Group", "m_id": 9, "tb_name": "shirty group", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
