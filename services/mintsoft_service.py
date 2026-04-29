@@ -115,6 +115,11 @@ class MintsoftReturnService:
 
                     if disposition == "Return to Stock":
                         return_reason = 1
+                    
+                    elif disposition == "Missing":
+                        print(f"Item {sku} faltante en el return")
+                        continue
+                    
                     else:
                         return_reason = 2
 
@@ -204,6 +209,11 @@ class MintsoftReturnService:
                 if disposition == "Return to Stock":
                     return_reason = 1
                     returns_location_id = 4104 # RET
+                
+                elif disposition == "Missing":
+                    print(f"Item {sku} faltante en el return")
+                    continue
+
                 else:
                     return_reason = 2,
                     returns_location_id = 2363 # RET-QT
@@ -263,6 +273,9 @@ class MintsoftReturnService:
                         returns_location_id = 4104 # RET
                     else:
                         returns_location_id = 4299 # RET
+                
+                elif disposition == "Missing":
+                    continue
 
                 else:
                     if warehouse == 3:
