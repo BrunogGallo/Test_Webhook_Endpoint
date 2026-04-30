@@ -31,7 +31,7 @@ class MintsoftReturnService:
             merchant = (line_items[0] or {}).get("merchant") or {}
             name = merchant.get("name")
             if name:
-                return name
+                return name.strip()
         return ""
 
     def _get_storefront_order_number(self, data) -> str:
