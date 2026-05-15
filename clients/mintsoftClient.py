@@ -220,7 +220,7 @@ class MintsoftOrderClient:
         r.raise_for_status()
         return r.json() 
     
-    def get_product_id(self, sku:str):
+    def get_product_id(self, sku: str, client_id: int):
         url = f"{self.BASE_URL}//api/Product/Search?Search={sku}"
 
         r = requests.get(
@@ -231,8 +231,13 @@ class MintsoftOrderClient:
 
         r.raise_for_status()
         data = r.json()
-        product_id = data[0]["ID"] if data else None
-        print(f"Product ID for SKU {sku}: {product_id}")
+
+        product_id = next(
+            (item["ID"] for item in data if item.get("ClientId") == client_id),
+            None,
+        )
+
+        print(f"Product ID for SKU {sku} (ClientId {client_id}): {product_id}")
         return product_id
     
     def check_carton (self, carton_code):
