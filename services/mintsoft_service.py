@@ -190,6 +190,8 @@ class MintsoftReturnService:
         self.logger.info(f"Starting to add items to return {return_id}")
         
         try:
+            merchant_name = self._get_merchant_name(data)
+            client_id = map_client(merchant_name) # Si no encuentra devuelve None
             event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
             
@@ -224,7 +226,7 @@ class MintsoftReturnService:
                     continue
                 
                 try:
-                    product_id = self.client.get_product_id(sku)
+                    product_id = self.client.get_product_id(sku, client_id)
                 except Exception as e:
                     print(e)
 
@@ -263,7 +265,7 @@ class MintsoftReturnService:
             # Step 2: Allocate locations for items 
         
             for item in line_items:
-                product_id = self.client.get_product_id(sku)
+                product_id = self.client.get_product_id(sku, client_id)
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
                 disposition = item.get("disposition")
@@ -305,12 +307,14 @@ class MintsoftReturnService:
             return None
     
     def reallocate_return_items(self, data):
+        merchant_name = self._get_merchant_name(data)
+        client_id = map_client(merchant_name) # Si no encuentra devuelve None
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
 
         for item in line_items:
             sku = item.get("sku")
-            product_id = self.client.get_product_id(sku)
+            product_id = self.client.get_product_id(sku, client_id)
             merchant = self._get_merchant_name(data)
             warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
             carton_code = item.get("put_away_bin")
