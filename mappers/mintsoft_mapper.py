@@ -11,7 +11,7 @@ clients = [
   # { "m_name": "Kivari", "m_id": 13, "tb_name": "kivari", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "LF Markey", "m_id": 11, "tb_name": "lf markey", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Lorna Murray", "m_id": 24, "tb_name": "lorna murray", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  # { "m_name": "Lou Swim", "m_id": 25, "tb_name": "lou swim", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Lou Swim", "m_id": 25, "tb_name": "lou swim", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   # { "m_name": "Maggie The Label", "m_id": 27, "tb_name": "maggie the label", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Nude Lucy", "m_id": 16, "tb_name": "nude lucy", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Pink City Prints", "m_id": 15, "tb_name": "pink city prints", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
@@ -27,6 +27,9 @@ clients = [
   { "m_name": "Cin Cin", "m_id": 48, "tb_name": "cin cin", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Clea", "m_id": 45, "tb_name": "clea", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "SWF", "m_id": 58, "tb_name": "swf", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Pastiche", "m_id": 51, "tb_name": "pastiche", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
+  { "m_name": "Dala", "m_id": 77, "tb_name": "dala", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "One of Others", "m_id": 84, "tb_name": "one of others", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5}
 ]
