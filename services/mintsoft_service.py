@@ -1,6 +1,11 @@
 import os
 import json
 import sys
+import socket
+import smtplib
+import traceback
+from email.message import EmailMessage
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +23,71 @@ class MintsoftReturnService:
         self.logger = get_logger(logger_name, log_file)
         self.client = MintsoftOrderClient()
         self.status_ids = [4, 5, 6]
+
+        # ----- Email notification config (read from environment) -----
+        self.smtp_host = os.environ.get("SMTP_HOST")
+        self.smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        self.smtp_user = os.environ.get("SMTP_USER")
+        self.smtp_password = os.environ.get("SMTP_PASSWORD")
+        self.alert_email_to = os.environ.get("ALERT_EMAIL_TO", "bgallo@the5411.com")
+        self.alert_email_from = os.environ.get("ALERT_EMAIL_FROM", self.smtp_user or "")
+
+    # -------------------------------------------------------------
+    # Internal: send an error notification email. Never raises.
+    # -------------------------------------------------------------
+    def _send_error_email(self, method: str, error: BaseException, context: Optional[Dict[str, Any]] = None) -> None:
+        try:
+            if not (self.smtp_host and self.smtp_user and self.smtp_password and self.alert_email_to):
+                self.logger.warning(
+                    "Email alert NOT sent (SMTP credentials missing). "
+                    "Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, ALERT_EMAIL_TO env vars."
+                )
+                return
+
+            host = socket.gethostname()
+            ts = datetime.utcnow().isoformat() + "Z"
+            tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+
+            subject = f"[MintsoftReturnService] API error in {method}"
+            body_lines = [
+                f"An error occurred in MintsoftReturnService.{method}",
+                f"Time (UTC): {ts}",
+                f"Host: {host}",
+                f"Error type: {type(error).__name__}",
+                f"Error: {error}",
+                "",
+            ]
+            if context:
+                body_lines.append("Context:")
+                try:
+                    body_lines.append(json.dumps(context, indent=2, default=str))
+                except Exception:
+                    body_lines.append(str(context))
+                body_lines.append("")
+            body_lines.append("Traceback:")
+            body_lines.append(tb)
+
+            msg = EmailMessage()
+            msg["Subject"] = subject
+            msg["From"] = self.alert_email_from
+            msg["To"] = self.alert_email_to
+            msg.set_content("\n".join(body_lines))
+
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=15) as server:
+                server.ehlo()
+                try:
+                    server.starttls()
+                    server.ehlo()
+                except Exception:
+                    # Server may not support STARTTLS (e.g. local relay) -- continue.
+                    pass
+                server.login(self.smtp_user, self.smtp_password)
+                server.send_message(msg)
+
+            self.logger.info(f"Error alert email sent to {self.alert_email_to} for {method}")
+        except Exception as mail_err:
+            # Never let notification failures take down the caller.
+            self.logger.error(f"Failed to send error alert email: {mail_err}", exc_info=True)
 
     def _get_merchant_name(self, data) -> str:
         """Get merchant name from event_data; supports both merchant_integration and line_items[0].merchant."""
@@ -60,6 +130,11 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error fetching Mintsoft orders: {e}", exc_info=True)
+            self._send_error_email(
+                method="fetch_mintsoft_orders",
+                error=e,
+                context={"merchant_name": merchant_name, "client_id": client_id},
+            )
             return []
 
     def match_rma_order(self, orders: List[Dict], data) -> Optional[int]:
@@ -70,7 +145,7 @@ class MintsoftReturnService:
         for order in orders:
             if str(order.get("OrderNumber")) == str(rma_order_name):
                 self.logger.info(f"Found matching order in Mintsoft for RMA order name: {rma_order_name}")
-                
+
                 return order.get("ID")
 
         self.logger.warning(f"No matching order found in Mintsoft for RMA order name: {rma_order_name}")
@@ -84,7 +159,7 @@ class MintsoftReturnService:
         if client_id is None:
                 print ("Client not in Mintsoft, return cannot be processed")
                 return None, "No Return Created"
-        
+
         orders = self.fetch_mintsoft_orders(data)
         order_id = self.match_rma_order(orders, data)
 
@@ -115,11 +190,11 @@ class MintsoftReturnService:
 
                     if disposition == "Return to Stock":
                         return_reason = 1
-                    
+
                     elif disposition == "Missing":
                         print(f"Item {sku} faltante en el return")
                         continue
-                    
+
                     else:
                         return_reason = 2
 
@@ -151,56 +226,80 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
+            self._send_error_email(
+                method="create_return",
+                error=e,
+                context={
+                    "merchant_name": merchant_name,
+                    "client_id": client_id,
+                    "warehouse": warehouse,
+                    "order_id": order_id,
+                },
+            )
             return None
-        
+
     def allocate_external_return_items(self, data, return_id: int):
         merchant_name = self._get_merchant_name(data)
         warehouse = map_warehouse(merchant_name)
-        
-        return_details = self.client.get_return_details(return_id)
-        return_items = return_details.get('ReturnItems')
-            
-        for item in return_items:
-            return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
-            if return_reason == 1: # Si esta en buena condicion
-                if warehouse == 3:
-                    location_id = 4104 # RET Wholesale
-                else:
-                    location_id = 4299 # RET E-Commerce
-            
-            else: # Si esta en mala condicion
-                if warehouse == 3:
-                    location_id = 9 # RET-TEMP Wholesale
-                else:
-                    location_id = 4304 # RET-TEMP E-Commerce
 
-            data = {
-                'ReturnItemId': item.get('ID'),
-                'Quantity': item.get('Quantity'),
-                'LocationId': location_id
-            }
+        try:
+            return_details = self.client.get_return_details(return_id)
+            return_items = return_details.get('ReturnItems')
 
-            response = self.client.allocate_return_item_location(return_id, data)
-            self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
+            for item in return_items:
+                return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
+                if return_reason == 1: # Si esta en buena condicion
+                    if warehouse == 3:
+                        location_id = 4104 # RET Wholesale
+                    else:
+                        location_id = 4299 # RET E-Commerce
 
-        return None
+                else: # Si esta en mala condicion
+                    if warehouse == 3:
+                        location_id = 9 # RET-TEMP Wholesale
+                    else:
+                        location_id = 4304 # RET-TEMP E-Commerce
+
+                data = {
+                    'ReturnItemId': item.get('ID'),
+                    'Quantity': item.get('Quantity'),
+                    'LocationId': location_id
+                }
+
+                response = self.client.allocate_return_item_location(return_id, data)
+                self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
+
+            return None
+
+        except Exception as e:
+            self.logger.error(f"Error allocating external return items for return {return_id}: {e}", exc_info=True)
+            self._send_error_email(
+                method="allocate_external_return_items",
+                error=e,
+                context={
+                    "merchant_name": merchant_name,
+                    "warehouse": warehouse,
+                    "return_id": return_id,
+                },
+            )
+            raise
 
     def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
 
         self.logger.info(f"Starting to add items to return {return_id}")
-        
+
         try:
             merchant_name = self._get_merchant_name(data)
             client_id = map_client(merchant_name) # Si no encuentra devuelve None
             event_data = data["event_data"]
             line_items = event_data.get("line_items", [])
-            
+
             returned_product_map = {}
-            
+
             if not line_items:
                 self.logger.warning(f"No line items found in return data")
                 return None
-            
+
             # Step 1: Add items to the return
             for item in line_items:
                 graded_attributes = item.get("graded_attributes") or []
@@ -211,7 +310,7 @@ class MintsoftReturnService:
                 if disposition == "Return to Stock":
                     return_reason = 1
                     returns_location_id = 4104 # RET
-                
+
                 elif disposition == "Missing":
                     print(f"Item {sku} faltante en el return")
                     continue
@@ -224,7 +323,7 @@ class MintsoftReturnService:
                 if not sku:
                     self.logger.warning("Skipping line item with missing or empty SKU")
                     continue
-                
+
                 try:
                     product_id = self.client.get_product_id(sku, client_id)
                 except Exception as e:
@@ -238,12 +337,12 @@ class MintsoftReturnService:
 
                 item_data = {
                     "Quantity": item.get("quantity"),
-                    "ReturnReasonId": return_reason, 
+                    "ReturnReasonId": return_reason,
                     "ProductId": product_id,
                     "Action": "NONE",
-                    "ReturnPhotos": return_photos                   
+                    "ReturnPhotos": return_photos
                 }
-                
+
                 if graded_attributes:
                     ga = graded_attributes[0] or {}
                     mg = (ga.get("merchant_grading_attribute") or {}).get("grading_attribute") or {}
@@ -252,7 +351,7 @@ class MintsoftReturnService:
                         item_data["Comments"] = grading_title
 
                 response = self.client.add_return_item(return_id, item_data)
-                returned_product_map[product_id] = response.get("ID")                
+                returned_product_map[product_id] = response.get("ID")
 
                 self.logger.info(item_data)
                 self.logger.info(f"Added item {sku} to return {return_id}: {response}")
@@ -261,9 +360,9 @@ class MintsoftReturnService:
                     msg = response.get("Message") or "Unknown error"
                     self.logger.error(f"Mintsoft AddItem failed for SKU {sku}: {msg}")
                     raise RuntimeError(f"Mintsoft AddItem failed: {msg}")
-            
-            # Step 2: Allocate locations for items 
-        
+
+            # Step 2: Allocate locations for items
+
             for item in line_items:
                 product_id = self.client.get_product_id(sku, client_id)
                 merchant = self._get_merchant_name(data)
@@ -275,7 +374,7 @@ class MintsoftReturnService:
                         returns_location_id = 4104 # RET
                     else:
                         returns_location_id = 4299 # RET
-                
+
                 elif disposition == "Missing":
                     continue
 
@@ -294,110 +393,127 @@ class MintsoftReturnService:
 
                 response = self.client.allocate_return_item_location(return_id, allocation_data)
                 self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
-            
+
             # Step 3: Confirm the return
             self.logger.info(f"Confirming return {return_id}")
             response = self.client.confirm_return(return_id)
             self.logger.info(f"Confirmed return {return_id}: {response}")
 
             return None
-        
+
         except Exception as e:
             self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
+            self._send_error_email(
+                method="add_return_items",
+                error=e,
+                context={"return_id": return_id},
+            )
             return None
-    
+
     def reallocate_return_items(self, data):
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
 
-        for item in line_items:
-            sku = item.get("sku")
-            product_id = self.client.get_product_id(sku, client_id)
-            merchant = self._get_merchant_name(data)
-            warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
-            carton_code = item.get("put_away_bin")
+        try:
+            for item in line_items:
+                sku = item.get("sku")
+                product_id = self.client.get_product_id(sku, client_id)
+                merchant = self._get_merchant_name(data)
+                warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
+                carton_code = item.get("put_away_bin")
 
-            disposition = item.get("disposition")
-            if disposition == "Return to Stock": # Stock en buenas condiciones
+                disposition = item.get("disposition")
+                if disposition == "Return to Stock": # Stock en buenas condiciones
 
-                reallocation_data = {
-                    "SourceWarehouseId": warehouse,
-                    "SourceNameOrCode": "RET",
-                    "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": carton_code,
-                    "ProductId": product_id,
-                    "Quantity": item.get("quantity"),
-                    "Comment": "Return reallocation",
-                }
+                    reallocation_data = {
+                        "SourceWarehouseId": warehouse,
+                        "SourceNameOrCode": "RET",
+                        "DestinationWarehouseId": warehouse,
+                        "DestinationNameOrCode": carton_code,
+                        "ProductId": product_id,
+                        "Quantity": item.get("quantity"),
+                        "Comment": "Return reallocation",
+                    }
 
-                if self.client.check_carton(carton_code) == False: # Check si existe la caja
-                    print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
-                    client_id = map_client(merchant)
+                    if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                        print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
+                        client_id = map_client(merchant)
+
+                        if warehouse == 3:
+                            returns_location_id = 4104 # RET Wholesale
+                        else:
+                            returns_location_id = 4299 # RET Ecom
+
+                        carton_data = {
+                            "WarehouseId": warehouse,
+                            "StorageMediaName": "Stock",
+                            "Code": carton_code,
+                            "LocationId": returns_location_id
+                        }
+
+                        self.client.create_carton(carton_data, client_id)
+
+                    response = self.client.transfer_stock(reallocation_data)
+                    print(response)
+
+                else: # Stock a mandar a cuarentena
 
                     if warehouse == 3:
-                        returns_location_id = 4104 # RET Wholesale
+                        temporary_location_id = 9 # RET-QT Wholesale
                     else:
-                        returns_location_id = 4299 # RET Ecom
+                        temporary_location_id = 4304 # RET-TEMP E-Comm
 
-                    carton_data = {
-                        "WarehouseId": warehouse,
-                        "StorageMediaName": "Stock",
-                        "Code": carton_code,
-                        "LocationId": returns_location_id
+                    reallocation_data = {
+                        "SourceWarehouseId": warehouse,
+                        "SourceNameOrCode": "RET-TEMP",
+                        "DestinationWarehouseId": warehouse,
+                        "DestinationNameOrCode": carton_code,
+                        "ProductId": product_id,
+                        "Quantity": item.get("quantity"),
+                        "Type": "Quarantine",
+                        "Comment": "Return reallocation",
                     }
 
-                    self.client.create_carton(carton_data, client_id)
-
-                response = self.client.transfer_stock(reallocation_data)
-                print(response)
-
-            else: # Stock a mandar a cuarentena
-
-                if warehouse == 3:
-                    temporary_location_id = 9 # RET-QT Wholesale
-                else:
-                    temporary_location_id = 4304 # RET-TEMP E-Comm
-
-                reallocation_data = {
-                    "SourceWarehouseId": warehouse,
-                    "SourceNameOrCode": "RET-TEMP",
-                    "DestinationWarehouseId": warehouse,
-                    "DestinationNameOrCode": carton_code,
-                    "ProductId": product_id,
-                    "Quantity": item.get("quantity"),
-                    "Type": "Quarantine",
-                    "Comment": "Return reallocation",
-                }
-
-                quarantine_data = {
-                    "ProductID": product_id,
-                    "WarehouseId": warehouse,
-                    "LocationId": temporary_location_id,
-                    "Quantity": item.get("quantity"), 
-                    "Comment": "Returned stock sent to Quarantine"
-                }
-
-                if self.client.check_carton(carton_code) == False: # Check si existe la caja
-                    print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
-                    client_id = map_client(merchant)
-
-                    carton_data = {
+                    quarantine_data = {
+                        "ProductID": product_id,
                         "WarehouseId": warehouse,
-                        "StorageMediaName": "Stock",
-                        "Code": carton_code,
-                        "LocationId": temporary_location_id
+                        "LocationId": temporary_location_id,
+                        "Quantity": item.get("quantity"),
+                        "Comment": "Returned stock sent to Quarantine"
                     }
 
-                    self.client.create_carton(carton_data, client_id)
-                
-                self.client.quarantine_stock(quarantine_data)
-                self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+                    if self.client.check_carton(carton_code) == False: # Check si existe la caja
+                        print(f'Carton {carton_code} not in Mintsoft - creating Carton...')
+                        client_id = map_client(merchant)
 
-                response = self.client.transfer_stock(reallocation_data)
-                print(response)
+                        carton_data = {
+                            "WarehouseId": warehouse,
+                            "StorageMediaName": "Stock",
+                            "Code": carton_code,
+                            "LocationId": temporary_location_id
+                        }
 
-    
-        return response
-        
+                        self.client.create_carton(carton_data, client_id)
+
+                    self.client.quarantine_stock(quarantine_data)
+                    self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+
+                    response = self.client.transfer_stock(reallocation_data)
+                    print(response)
+
+
+            return response
+
+        except Exception as e:
+            self.logger.error(f"Error reallocating return items: {e}", exc_info=True)
+            self._send_error_email(
+                method="reallocate_return_items",
+                error=e,
+                context={
+                    "merchant_name": merchant_name,
+                    "client_id": client_id,
+                },
+            )
+            raise

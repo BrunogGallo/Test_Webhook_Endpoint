@@ -29,6 +29,10 @@ clients = [
   { "m_name": "SWF", "m_id": 58, "tb_name": "swf", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Pastiche", "m_id": 51, "tb_name": "pastiche", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Dala", "m_id": 77, "tb_name": "dala", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Lovebirds", "m_id": 80, "tb_name": "lovebirds", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Bernadette", "m_id": 83, "tb_name": "bernadette", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Fori", "m_id": 76, "tb_name": "fori", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Dzo", "m_id": 75, "tb_name": "dzo", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "One of Others", "m_id": 84, "tb_name": "one of others", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5}
