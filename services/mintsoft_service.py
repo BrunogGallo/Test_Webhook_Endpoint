@@ -34,8 +34,16 @@ class MintsoftReturnService:
 
     # -------------------------------------------------------------
     # Internal: send an error notification email. Never raises.
+    # order_reference (storefront_order_number / POReference) is highlighted
+    # in the subject and body when provided.
     # -------------------------------------------------------------
-    def _send_error_email(self, method: str, error: BaseException, context: Optional[Dict[str, Any]] = None) -> None:
+    def _send_error_email(
+        self,
+        method: str,
+        error: BaseException,
+        order_reference: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> None:
         try:
             if not (self.smtp_host and self.smtp_user and self.smtp_password and self.alert_email_to):
                 self.logger.warning(
@@ -48,13 +56,17 @@ class MintsoftReturnService:
             ts = datetime.utcnow().isoformat() + "Z"
             tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
 
-            subject = f"[MintsoftReturnService] API error in {method}"
+            ref_label = str(order_reference) if order_reference else "UNKNOWN"
+            subject = f"[MintsoftReturnService] API error in {method} - POReference: {ref_label}"
+
             body_lines = [
                 f"An error occurred in MintsoftReturnService.{method}",
-                f"Time (UTC): {ts}",
-                f"Host: {host}",
-                f"Error type: {type(error).__name__}",
-                f"Error: {error}",
+                "",
+                f"POReference: {ref_label}",
+                f"Time (UTC):  {ts}",
+                f"Host:        {host}",
+                f"Error type:  {type(error).__name__}",
+                f"Error:       {error}",
                 "",
             ]
             if context:
@@ -84,7 +96,9 @@ class MintsoftReturnService:
                 server.login(self.smtp_user, self.smtp_password)
                 server.send_message(msg)
 
-            self.logger.info(f"Error alert email sent to {self.alert_email_to} for {method}")
+            self.logger.info(
+                f"Error alert email sent to {self.alert_email_to} for {method} (POReference={ref_label})"
+            )
         except Exception as mail_err:
             # Never let notification failures take down the caller.
             self.logger.error(f"Failed to send error alert email: {mail_err}", exc_info=True)
@@ -106,6 +120,14 @@ class MintsoftReturnService:
 
     def _get_storefront_order_number(self, data) -> str:
         return data["event_data"]["line_items"][0]["storefront_order_number"]
+
+    def _safe_get_storefront_order_number(self, data) -> Optional[str]:
+        """Same as _get_storefront_order_number but returns None instead of raising
+        when data is malformed -- so it can be used inside error-handling code."""
+        try:
+            return self._get_storefront_order_number(data)
+        except Exception:
+            return None
 
     def fetch_mintsoft_orders(self, data) -> List[Dict]:
         self.logger.info("Starting to fetch Mintsoft orders")
@@ -133,6 +155,7 @@ class MintsoftReturnService:
             self._send_error_email(
                 method="fetch_mintsoft_orders",
                 error=e,
+                order_reference=self._safe_get_storefront_order_number(data),
                 context={"merchant_name": merchant_name, "client_id": client_id},
             )
             return []
@@ -229,6 +252,7 @@ class MintsoftReturnService:
             self._send_error_email(
                 method="create_return",
                 error=e,
+                order_reference=self._safe_get_storefront_order_number(data),
                 context={
                     "merchant_name": merchant_name,
                     "client_id": client_id,
@@ -273,9 +297,15 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error allocating external return items for return {return_id}: {e}", exc_info=True)
+            # `data` may have been overwritten in the loop above, so try to pull a
+            # reference from it only if it still looks like the original payload.
+            ref = None
+            if isinstance(data, dict) and "event_data" in data:
+                ref = self._safe_get_storefront_order_number(data)
             self._send_error_email(
                 method="allocate_external_return_items",
                 error=e,
+                order_reference=ref,
                 context={
                     "merchant_name": merchant_name,
                     "warehouse": warehouse,
@@ -406,6 +436,7 @@ class MintsoftReturnService:
             self._send_error_email(
                 method="add_return_items",
                 error=e,
+                order_reference=self._safe_get_storefront_order_number(data),
                 context={"return_id": return_id},
             )
             return None
@@ -511,6 +542,7 @@ class MintsoftReturnService:
             self._send_error_email(
                 method="reallocate_return_items",
                 error=e,
+                order_reference=self._safe_get_storefront_order_number(data),
                 context={
                     "merchant_name": merchant_name,
                     "client_id": client_id,
