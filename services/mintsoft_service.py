@@ -152,10 +152,20 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error fetching Mintsoft orders: {e}", exc_info=True)
+            event_data = data["event_data"]
+            line_items = event_data.get("line_items", [])
+            return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+
+            if return_identifier is None:
+                completed_at = event_data.get("completed_at")
+                customer_email = event_data["customer"].get("email")
+                new_identifier = f"{completed_at}-{customer_email}"
+                return_identifier = new_identifier
+
             self._send_error_email(
                 method="fetch_mintsoft_orders",
                 error=e,
-                order_reference=self._safe_get_storefront_order_number(data),
+                order_reference=return_identifier,
                 context={"merchant_name": merchant_name, "client_id": client_id},
             )
             return []
@@ -209,6 +219,12 @@ class MintsoftReturnService:
                 for item in line_items:
                     sku = item.get("sku")
                     product_id = self.client.get_product_id(sku, client_id)
+                    if product_id == None:
+                        raise RuntimeError(
+                            f"Product not found in Mintsoft for SKU '{sku}'. "
+                            f"Cannot create external return — please add the product in Mintsoft first."
+                        )
+                        
                     disposition = item.get("disposition")
 
                     if disposition == "Return to Stock":
@@ -249,10 +265,20 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error creating return: {e}", exc_info=True)
+            event_data = data["event_data"]
+            line_items = event_data.get("line_items", [])
+            return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+
+            if return_identifier is None:
+                completed_at = event_data.get("completed_at")
+                customer_email = event_data["customer"].get("email")
+                new_identifier = f"{completed_at}-{customer_email}"
+                return_identifier = new_identifier
+                
             self._send_error_email(
                 method="create_return",
                 error=e,
-                order_reference=self._safe_get_storefront_order_number(data),
+                order_reference=return_identifier,
                 context={
                     "merchant_name": merchant_name,
                     "client_id": client_id,
@@ -433,10 +459,20 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
+            event_data = data["event_data"]
+            line_items = event_data.get("line_items", [])
+            return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+
+            if return_identifier is None:
+                completed_at = event_data.get("completed_at")
+                customer_email = event_data["customer"].get("email")
+                new_identifier = f"{completed_at}-{customer_email}"
+                return_identifier = new_identifier
+
             self._send_error_email(
                 method="add_return_items",
                 error=e,
-                order_reference=self._safe_get_storefront_order_number(data),
+                order_reference=new_identifier,
                 context={"return_id": return_id},
             )
             return None
@@ -539,10 +575,20 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error reallocating return items: {e}", exc_info=True)
+            event_data = data["event_data"]
+            line_items = event_data.get("line_items", [])
+            return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+
+            if return_identifier is None:
+                completed_at = event_data.get("completed_at")
+                customer_email = event_data["customer"].get("email")
+                new_identifier = f"{completed_at}-{customer_email}"
+                return_identifier = new_identifier
+
             self._send_error_email(
                 method="reallocate_return_items",
                 error=e,
-                order_reference=self._safe_get_storefront_order_number(data),
+                order_reference=return_identifier,
                 context={
                     "merchant_name": merchant_name,
                     "client_id": client_id,
