@@ -25,6 +25,8 @@ clients = [
   { "m_name": "Third Form", "m_id": 22, "tb_name": "third form ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Third Form", "m_id": 22, "tb_name": "third form - wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TT Studios", "m_id": 7, "tb_name": "tt studios", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Sau Lee", "m_id": 107, "tb_name": "sau lee ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
+  { "m_name": "Rove", "m_id": 8, "tb_name": "rove ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   # { "m_name": "Ziah", "m_id": 26, "tb_name": "ziah", "tb_rma_prov": "Work Capture", "warehouse_id": 3}
   { "m_name": "Cin Cin", "m_id": 48, "tb_name": "cin cin ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Celia B", "m_id": 49, "tb_name": "celia b", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
