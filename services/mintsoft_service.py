@@ -29,7 +29,7 @@ class MintsoftReturnService:
         self.smtp_port = int(os.environ.get("SMTP_PORT", "587"))
         self.smtp_user = os.environ.get("SMTP_USER")
         self.smtp_password = os.environ.get("SMTP_PASSWORD")
-        self.alert_email_to = os.environ.get("ALERT_EMAIL_TO", "bgallo@the5411.com")
+        self.alert_email_to = "bgallo@the5411.com, jcordero@the5411.com, ngurfinkel@the5411.com", 
         self.alert_email_from = os.environ.get("ALERT_EMAIL_FROM", self.smtp_user or "")
 
     # -------------------------------------------------------------
