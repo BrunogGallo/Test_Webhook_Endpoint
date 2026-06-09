@@ -2,6 +2,7 @@ clients = [
   # { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Brodie", "m_id": 5, "tb_name": "brodie", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Baina", "m_id": 105, "tb_name": "baina", "tb_rma_prov": "Work Capture", "warehouse_id":  3},
+  { "m_name": "Bronze Snake", "m_id": 110, "tb_name": "bronze snake", "tb_rma_prov": "Work Capture", "warehouse_id":  5},
   # { "m_name": "Deiji Studios", "m_id": 10, "tb_name": "deiji studios", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Emilia Wickstead", "m_id": 20, "tb_name": "emilia wickstead ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Emilia Wickstead", "m_id": 20, "tb_name": "emilia wickstead wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
