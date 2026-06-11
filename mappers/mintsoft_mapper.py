@@ -44,7 +44,9 @@ clients = [
   { "m_name": "Dzo", "m_id": 75, "tb_name": "dzo", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "One of Others", "m_id": 84, "tb_name": "one of others", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5}
+  { "m_name": "TEST CLIENT", "m_id": 3, "tb_name": "test client ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
+  { "m_name": "Seventy Mochi", "m_id": 112, "tb_name": "seventy + mochi ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
+  { "m_name": "Pastiche", "m_id": 51, "tb_name": "pastiche", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
 ]
 
 def map_client(tb_name:str):
