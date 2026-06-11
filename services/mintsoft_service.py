@@ -225,10 +225,10 @@ class MintsoftReturnService:
                         # Si el item no existe en Mintsoft con ese SKU
 
                         new_product_data = {
-                            "sku": sku,
-                            "name": item.get("product_variant", {}).get("name"),
-                            "ean": item.get("barcode"),
-                            "client_id": client_id,
+                            "SKU": sku,
+                            "Name": item.get("product_variant", {}).get("name"),
+                            "EAN": item.get("barcode"),
+                            "ClientId": client_id,
                         }
 
                         created_product_id = self.client.create_product(new_product_data)
