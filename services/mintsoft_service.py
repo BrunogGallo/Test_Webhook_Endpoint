@@ -212,7 +212,7 @@ class MintsoftReturnService:
                     return_identifier = new_identifier
 
                 external_return_data = {
-                    "Reference": return_identifier,
+                    "Reference": return_identifier[:50],
                     "ClientId": client_id,
                     "WarehouseId": warehouse,
                     "ReturnItems": [],
