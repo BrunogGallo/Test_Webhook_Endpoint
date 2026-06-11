@@ -226,7 +226,7 @@ class MintsoftReturnService:
 
                         new_product_data = {
                             "SKU": sku,
-                            "Name": item.get("product_variant", {}).get("name"),
+                            "Name": item.get("product_variant", {}).get("name") or item.get("sku"),
                             "EAN": item.get("barcode"),
                             "ClientId": client_id,
                         }
