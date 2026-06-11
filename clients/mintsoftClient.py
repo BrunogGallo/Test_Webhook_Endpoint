@@ -263,3 +263,24 @@ class MintsoftOrderClient:
         r = requests.post(url, json = carton_data, headers=self.headers())
 
         return None
+    
+    def create_product(self, product_data):
+        url = f'{self.BASE_URL}/api/Product'
+
+        r = requests.put(url, json = product_data, headers = self.headers())
+
+        if r.status_code == 200:
+            body = r.json()
+            product_id = body.get("ProductId")
+            success = body.get("Success", False)
+
+            if success:
+                print(f"Se ha creado exitosamente el SKU {product_data['SKU']}")
+                return product_id
+            else:
+                # Mintsoft can return 200 with Success=false and an error in Message
+                print(f"Mintsoft rechazó el SKU {product_data['SKU']}: {body.get('Message')}")
+                return None
+
+        print(f"Error {r.status_code} creando SKU {product_data['SKU']}: {r.text}")
+        return None

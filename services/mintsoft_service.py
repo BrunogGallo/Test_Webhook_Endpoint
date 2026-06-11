@@ -5,6 +5,7 @@ import socket
 import smtplib
 import traceback
 from email.message import EmailMessage
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -210,7 +211,7 @@ class MintsoftReturnService:
                     new_identifier = f"{completed_at}-{customer_email}"
                     return_identifier = new_identifier
 
-                external_return_data= {
+                external_return_data = {
                     "Reference": return_identifier,
                     "ClientId": client_id,
                     "WarehouseId": warehouse,
@@ -219,11 +220,24 @@ class MintsoftReturnService:
                 for item in line_items:
                     sku = item.get("sku")
                     product_id = self.client.get_product_id(sku, client_id)
+
                     if product_id == None:
-                        raise RuntimeError(
-                            f"Product not found in Mintsoft for SKU '{sku}'. "
-                            f"Cannot create external return — please add the product in Mintsoft first."
-                        )
+                        # Si el item no existe en Mintsoft con ese SKU
+
+                        new_product_data = {
+                            "sku": sku,
+                            "name": item.get("product_variant", {}).get("name"),
+                            "ean": item.get("barcode"),
+                            "client_id": client_id,
+                        }
+
+                        created_product_id = self.client.create_product(new_product_data)
+
+                        # Usamos el ID del item recien creado
+                        product_id = created_product_id
+
+                        # Sleep de 3 segundos para no saturar la API
+                        time.sleep(3)
                         
                     disposition = item.get("disposition")
 
@@ -249,10 +263,6 @@ class MintsoftReturnService:
                 external_return_id = self.client.create_external_return(data=external_return_data)
 
                 self.logger.info(f"External return created. ID: {external_return_id}")
-
-                ## Confirmar el return agrega un item a Location Unassigned
-                # self.client.confirm_return(external_return_id)
-                # self.logger.info(f"External return confirmed. Response: {external_return_id}")
 
                 return external_return_id, "External Return Created" # Crea Return Externa (con el Order ID)
 
