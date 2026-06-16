@@ -233,7 +233,7 @@ class MintsoftOrderClient:
         data = r.json()
 
         product_id = next(
-            (item["ID"] for item in data if item.get("ClientId") == client_id),
+            (item["ID"] for item in data if item.get("ClientId") == client_id and item.get("SKU") == sku),
             None,
         )
 

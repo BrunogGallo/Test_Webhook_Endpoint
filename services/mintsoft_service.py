@@ -296,7 +296,7 @@ class MintsoftReturnService:
                     "order_id": order_id,
                 },
             )
-            return None
+            return None, "No Return Created"
 
     def allocate_external_return_items(self, data, return_id: int):
         merchant_name = self._get_merchant_name(data)
