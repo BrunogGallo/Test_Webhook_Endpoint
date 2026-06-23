@@ -49,7 +49,7 @@ clients = [
   { "m_name": "Lexi", "m_id": 104, "tb_name": "lexi", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Pastiche", "m_id": 51, "tb_name": "pastiche", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Studio 189", "m_id": 113, "tb_name": "studio 189", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
-  { "m_name": "Ilio Nema", "m_id": 88, "tb_name": "ilio_nema", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Ilio Nema", "m_id": 88, "tb_name": "ilio nema", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "OW Intimates", "m_id": 114, "tb_name": "ow intimates", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
 ]
 
