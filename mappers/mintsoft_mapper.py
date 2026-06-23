@@ -20,7 +20,7 @@ clients = [
   { "m_name": "Pink City Prints", "m_id": 15, "tb_name": "pink city prints", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "Rove", "m_id": 8, "tb_name": "rove", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Sancia", "m_id": 23, "tb_name": "sancia", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  { "m_name": "Shirty Group", "m_id": 9, "tb_name": "shirty group", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Shirty Group", "m_id": 9, "tb_name": "shirty style", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Staple & Hue", "m_id": 21, "tb_name": "staple & hue", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "One Teaspoon", "m_id": 31, "tb_name": "one teaspoon ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   # { "m_name": "Theo", "m_id": 14, "tb_name": "theo", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
