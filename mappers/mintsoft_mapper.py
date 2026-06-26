@@ -53,6 +53,7 @@ clients = [
   { "m_name": "OW Intimates", "m_id": 114, "tb_name": "ow intimates", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Aur Ocea", "m_id": 46, "tb_name": "aur ocea", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Shop Jula", "m_id": 86, "tb_name": "shop jula", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Compania Fantastica", "m_id": 109, "tb_name": "compañía fantástica", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
 ]
 
 def map_client(tb_name:str):
