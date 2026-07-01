@@ -72,6 +72,7 @@ class MintsoftOrderClient:
         return return_id
 
     def create_external_return(self, data:Dict[str, Any]):
+        print("data", data)
         url = f"{self.BASE_URL}/api/Return/CreateExternalReturn"
 
         r = requests.post(
@@ -82,8 +83,13 @@ class MintsoftOrderClient:
 
         r.raise_for_status()
         response = r.json()
+        # Si el response es succes .get("Success") si es false,  llamar a /api/Product/SearchBarcode
+        # Cambiar data con lo que llega como productId y volver a llamar a /api/Return/CreateExternalReturn 
+        
+        print("resp",response)
+        
         return_id = response.get("ID")
-        print(response)
+        
         return return_id
     
     def add_return_item(self, return_id: int, item_data: Dict[str, Any]) -> Dict[str, Any]:
