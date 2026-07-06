@@ -1,5 +1,6 @@
 clients = [
-  # { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Significant Other", "m_id": 33, "tb_name": "significant other", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Brodie", "m_id": 5, "tb_name": "brodie", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Baina", "m_id": 105, "tb_name": "baina", "tb_rma_prov": "Work Capture", "warehouse_id":  3},
   { "m_name": "Bronze Snake", "m_id": 110, "tb_name": "bronze snake", "tb_rma_prov": "Work Capture", "warehouse_id":  5},
