@@ -1,5 +1,6 @@
 clients = [
-  # { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Significant Other", "m_id": 33, "tb_name": "significant other", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Brodie", "m_id": 5, "tb_name": "brodie", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Baina", "m_id": 105, "tb_name": "baina", "tb_rma_prov": "Work Capture", "warehouse_id":  3},
   { "m_name": "Bronze Snake", "m_id": 110, "tb_name": "bronze snake", "tb_rma_prov": "Work Capture", "warehouse_id":  5},
@@ -7,6 +8,7 @@ clients = [
   { "m_name": "Emilia Wickstead", "m_id": 20, "tb_name": "emilia wickstead ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Emilia Wickstead", "m_id": 20, "tb_name": "emilia wickstead wholesale", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Emily Lovelock", "m_id": 18, "tb_name": "emily lovelock", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
+  { "m_name": "Salt Gypsy", "m_id": 98, "tb_name": "salt gypsy", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Kivari", "m_id": 13, "tb_name": "kivari", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Holiday Company", "m_id": 4, "tb_name": "holiday company", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   # { "m_name": "House of Sunny", "m_id": 12, "tb_name": "house of sunny", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
