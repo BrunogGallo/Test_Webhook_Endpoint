@@ -219,7 +219,7 @@ class MintsoftReturnService:
                 }
                 for item in line_items:
                     sku = item.get("sku")
-                    product_id = self.client.get_product_id(sku, client_id)
+                    product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
 
                     if product_id == None:
                         # Si el item no existe en Mintsoft con ese SKU
@@ -232,7 +232,7 @@ class MintsoftReturnService:
                         }
 
                         created_product_id = self.client.create_product(new_product_data)
-
+                        
                         # Usamos el ID del item recien creado
                         product_id = created_product_id
 
@@ -391,7 +391,7 @@ class MintsoftReturnService:
                     continue
 
                 try:
-                    product_id = self.client.get_product_id(sku, client_id)
+                    product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 except Exception as e:
                     print(e)
 
@@ -430,7 +430,7 @@ class MintsoftReturnService:
             # Step 2: Allocate locations for items
 
             for item in line_items:
-                product_id = self.client.get_product_id(sku, client_id)
+                product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
                 disposition = item.get("disposition")
@@ -496,7 +496,7 @@ class MintsoftReturnService:
         try:
             for item in line_items:
                 sku = item.get("sku")
-                product_id = self.client.get_product_id(sku, client_id)
+                product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
                 carton_code = item.get("put_away_bin")

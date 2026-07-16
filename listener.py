@@ -50,6 +50,7 @@ def procesar_webhook(data):
         if return_id[1] == "Internal Return Created":
           return_service.add_return_items(return_id[0], data)
 
+        
           # Pasar items de RET o RET-QT a la caja del return si es Internal
           return_service.reallocate_return_items(data)
 
@@ -74,7 +75,7 @@ def webhook():
     print("tdata", thread_data)
     # 3. Subir JSON al Google Drive
     executor.submit(enviar_a_google_async, thread_data)
-
+    
     
 
     # 4. Procesarlo en Mintsoft

@@ -64,7 +64,7 @@ class MintsoftOrderClient:
             url, 
             headers=self.headers(),
         )
-
+        
         r.raise_for_status()
         response = r.json()
         return_id = response.get("ID")
@@ -226,7 +226,25 @@ class MintsoftOrderClient:
         r.raise_for_status()
         return r.json() 
     
-    def get_product_id(self, sku: str, client_id: int):
+    def get_sku_dado_barcode(self, barcode):
+        url = f"{self.BASE_URL}/api/Product/SearchBarcode"
+
+        r = requests.get(
+            url,
+            headers=self.headers(),
+            params={
+                "Barcode": barcode
+            },
+            timeout=120,
+        )
+
+        r.raise_for_status()
+        data = r.json()
+        sku = data.get("SKU")
+        return sku
+    
+    
+    def get_product_id(self, sku: str, client_id: int, barcode):
         url = f"{self.BASE_URL}//api/Product/Search?Search={sku}"
 
         r = requests.get(
@@ -244,7 +262,30 @@ class MintsoftOrderClient:
         )
 
         print(f"Product ID for SKU {sku} (ClientId {client_id}): {product_id}")
+
+        if product_id == None and len(barcode) > 7:
+            sku_rety = self.get_sku_dado_barcode(barcode)
+            url = f"{self.BASE_URL}//api/Product/Search?Search={sku_rety}"
+
+            r = requests.get(
+                url,
+                headers=self.headers(),
+                timeout=120,
+            )
+
+            r.raise_for_status()
+            data = r.json()
+            print(data, "barcode buscado")
+            product_id = next(
+                (item["ID"] for item in data if item.get("ClientId") == client_id and item.get("SKU") == sku),
+                None,
+            )
+        
+        print(product_id, "producto final")
+            
         return product_id
+    
+
     
     def check_carton (self, carton_code):
         url = f'{self.BASE_URL}/api/StorageMedia/ValidateCarton?cartonCode={carton_code}'
