@@ -71,8 +71,11 @@ def webhook():
 
     thread_data = raw_data.copy() if isinstance(raw_data, dict) else raw_data
     
+    print("tdata", thread_data)
     # 3. Subir JSON al Google Drive
     executor.submit(enviar_a_google_async, thread_data)
+
+    
 
     # 4. Procesarlo en Mintsoft
     executor.submit(procesar_webhook, raw_data)
