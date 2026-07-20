@@ -5,12 +5,15 @@ from requests.adapters import HTTPAdapter
 from concurrent.futures import ThreadPoolExecutor
 from services.mintsoft_service import MintsoftReturnService
 from urllib3.util.retry import Retry
-
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
 return_service = MintsoftReturnService()
 
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET")
 GAS_URL = os.environ.get("GAS_URL")
+WEBHOOKS_URL = os.environ.get("WEBHOOKS_URL")
+
 
 executor = ThreadPoolExecutor(max_workers=10)
 
@@ -23,6 +26,20 @@ retries = Retry(
     raise_on_status=False
 )
 session.mount('https://', HTTPAdapter(max_retries=retries))
+
+def enviar_webhook_a_google(datos):
+    try:
+        response = requests.post(
+            WEBHOOKS_URL,
+            json=datos,
+            timeout=60,
+            allow_redirects=True  # Crucial para seguir el redireccionamiento /echo de Google
+        )
+        response.raise_for_status()
+        print("✅ Respuesta de Google:", response.json())
+    except Exception as e:
+        print(f"❌ Error al enviar datos: {e}")
+
 
 def enviar_a_google_async(datos):
     """Función para enviar datos en segundo plano"""
@@ -76,6 +93,11 @@ def webhook():
     # 3. Subir JSON al Google Drive
     executor.submit(enviar_a_google_async, thread_data)
     
+    try:
+        enviar_webhook_a_google(thread_data)
+
+    except Exception as e:
+        print(e)
     
 
     # 4. Procesarlo en Mintsoft

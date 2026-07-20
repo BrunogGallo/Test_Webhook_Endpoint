@@ -308,6 +308,7 @@ class MintsoftReturnService:
 
             for item in return_items:
                 return_reason = item.get('ReturnReasonId') # 1 es Good Stock, 2 es Quarantine
+                print("return_reason",return_reason)
                 if return_reason == 1: # Si esta en buena condicion
                     if warehouse == 3:
                         location_id = 4104 # RET Wholesale
