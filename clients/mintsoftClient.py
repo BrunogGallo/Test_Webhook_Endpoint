@@ -240,8 +240,13 @@ class MintsoftOrderClient:
 
         r.raise_for_status()
         data = r.json()
-        sku = data.get("SKU")
-        return sku
+        if isinstance(data, dict):
+            sku = data.get("SKU")
+            
+            if sku is not None:
+                return sku
+
+        return "null"
     
     
     def get_product_id(self, sku: str, client_id: int, barcode):
@@ -265,6 +270,10 @@ class MintsoftOrderClient:
 
         if product_id == None and len(barcode) > 7:
             sku_rety = self.get_sku_dado_barcode(barcode)
+            # Sku ret
+            if sku_rety == "null":
+                return None
+
             url = f"{self.BASE_URL}//api/Product/Search?Search={sku_rety}"
 
             r = requests.get(
