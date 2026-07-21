@@ -27,8 +27,10 @@ retries = Retry(
 )
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
+
 def enviar_webhook_a_google(datos):
     try:
+        print(WEBHOOKS_URL)
         response = requests.post(
             WEBHOOKS_URL,
             json=datos,
@@ -39,6 +41,21 @@ def enviar_webhook_a_google(datos):
         print("✅ Respuesta de Google:", response.json())
     except Exception as e:
         print(f"❌ Error al enviar datos: {e}")
+
+def enviar_webhook_por_sku(datos):
+    event_data = datos.get('event_data', {})
+    line_items = event_data.get('line_items', [])
+
+    for item in line_items:
+        # Copia superficial del payload conservando la misma estructura,
+        # pero con un solo line_item (un SKU) por envío.
+        payload = dict(datos)
+        payload['event_data'] = dict(event_data)
+        payload['event_data']['line_items'] = [item]
+
+        print(f"➡️ Enviando SKU: {item.get('sku')}")
+        enviar_webhook_a_google(payload)
+
 
 
 def enviar_a_google_async(datos):
@@ -94,7 +111,7 @@ def webhook():
     executor.submit(enviar_a_google_async, thread_data)
     
     try:
-        enviar_webhook_a_google(thread_data)
+        enviar_webhook_por_sku(thread_data)
 
     except Exception as e:
         print(e)
