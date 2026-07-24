@@ -351,50 +351,52 @@ class MintsoftReturnService:
             )
             raise
 
-    def add_return_items(self, return_id: int, data: List[Dict]) -> Optional[Dict[str, Any]]:
+
+    def add_return_items(self, return_id: int, data: Dict) -> Optional[Dict[str, Any]]:
 
         self.logger.info(f"Starting to add items to return {return_id}")
 
         try:
             merchant_name = self._get_merchant_name(data)
             client_id = map_client(merchant_name) # Si no encuentra devuelve None
-            event_data = data["event_data"]
+            event_data = data.get("event_data", {})
             line_items = event_data.get("line_items", [])
 
-            returned_product_map = {}
-
             if not line_items:
-                self.logger.warning(f"No line items found in return data")
+                self.logger.warning("No line items found in return data")
                 return None
+
+            # Guardaremos el (ReturnItemId, item, location_id) para allocarlos luego
+            items_to_allocate = []
 
             # Step 1: Add items to the return
             for item in line_items:
-                graded_attributes = item.get("graded_attributes") or []
-                return_photos = item.get("photo_urls", [])
-
                 disposition = item.get("disposition")
 
-                if disposition == "Return to Stock":
-                    return_reason = 1
-                    returns_location_id = 4104 # RET
-
-                elif disposition == "Missing":
-                    print(f"Item {sku} faltante en el return")
+                if disposition == "Missing":
+                    sku_log = (item.get("sku") or "").strip()
+                    self.logger.info(f"Item {sku_log} faltante en el return. Saltando.")
                     continue
-
-                else:
-                    return_reason = 2,
-                    returns_location_id = 2363 # RET-QT
 
                 sku = (item.get("sku") or "").strip()
                 if not sku:
                     self.logger.warning("Skipping line item with missing or empty SKU")
                     continue
 
+                product_id = None
                 try:
                     product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 except Exception as e:
-                    print(e)
+                    self.logger.error(f"Error al obtener product_id para SKU {sku}: {e}")
+                    continue
+
+                if disposition == "Return to Stock":
+                    return_reason = 1
+                else:
+                    return_reason = 2
+
+                graded_attributes = item.get("graded_attributes") or []
+                return_photos = item.get("photo_urls", [])
 
                 quantity = item.get("quantity")
                 try:
@@ -403,7 +405,7 @@ class MintsoftReturnService:
                     quantity = 1
 
                 item_data = {
-                    "Quantity": item.get("quantity"),
+                    "Quantity": quantity,
                     "ReturnReasonId": return_reason,
                     "ProductId": product_id,
                     "Action": "NONE",
@@ -418,48 +420,42 @@ class MintsoftReturnService:
                         item_data["Comments"] = grading_title
 
                 response = self.client.add_return_item(return_id, item_data)
-                returned_product_map[product_id] = response.get("ID")
-
-                self.logger.info(item_data)
                 self.logger.info(f"Added item {sku} to return {return_id}: {response}")
 
-                if not response.get("Success"):
-                    msg = response.get("Message") or "Unknown error"
+                if not response or not response.get("Success"):
+                    msg = response.get("Message") if response else "Unknown error"
                     self.logger.error(f"Mintsoft AddItem failed for SKU {sku}: {msg}")
                     raise RuntimeError(f"Mintsoft AddItem failed: {msg}")
 
-            # Step 2: Allocate locations for items
+                return_item_id = response.get("ID")
 
-            for item in line_items:
-                product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
+                # Determinar la ubicación de asignación para ESTE ítem específico
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
-                disposition = item.get("disposition")
 
                 if disposition == "Return to Stock":
-                    if warehouse == 3:
-                        returns_location_id = 4104 # RET
-                    else:
-                        returns_location_id = 4299 # RET
-
-                elif disposition == "Missing":
-                    continue
-
+                    returns_location_id = 4104 if warehouse == 3 else 4299
                 else:
-                    if warehouse == 3:
-                        returns_location_id = 9 # RET-TEMP Wholesale
-                    else:
-                        returns_location_id = 4304 # RET-TEMP E-Comm
+                    returns_location_id = 9 if warehouse == 3 else 4304
 
-
-                allocation_data = {
-                    "ReturnItemId": returned_product_map.get(product_id),
+                # Guardamos la referencia directa del ID de la devolución que nos devolvió Mintsoft
+                items_to_allocate.append({
+                    "ReturnItemId": return_item_id,
                     "LocationId": returns_location_id,
-                    "Quantity": item.get("quantity"),
+                    "Quantity": quantity,
+                    "ProductId": product_id
+                })
+
+            # Step 2: Allocate locations for items
+            for alloc in items_to_allocate:
+                allocation_data = {
+                    "ReturnItemId": alloc["ReturnItemId"],
+                    "LocationId": alloc["LocationId"],
+                    "Quantity": alloc["Quantity"],
                 }
 
                 response = self.client.allocate_return_item_location(return_id, allocation_data)
-                self.logger.info(f"Allocated location {returns_location_id} for item {product_id}: {response}")
+                self.logger.info(f"Allocated location {alloc['LocationId']} for ReturnItemId {alloc['ReturnItemId']}: {response}")
 
             # Step 3: Confirm the return
             self.logger.info(f"Confirming return {return_id}")
@@ -470,24 +466,26 @@ class MintsoftReturnService:
 
         except Exception as e:
             self.logger.error(f"Error adding items to return {return_id}: {e}", exc_info=True)
-            event_data = data["event_data"]
+            event_data = data.get("event_data", {})
             line_items = event_data.get("line_items", [])
-            return_identifier = line_items[0].get("tracking_number") # Si hay, es el tracking number
+            
+            return_identifier = None
+            if line_items:
+                return_identifier = line_items[0].get("tracking_number")
 
-            if return_identifier is None:
-                completed_at = event_data.get("completed_at")
-                customer_email = event_data["customer"].get("email")
-                new_identifier = f"{completed_at}-{customer_email}"
-                return_identifier = new_identifier
+            if not return_identifier:
+                completed_at = event_data.get("completed_at", "")
+                customer_email = (event_data.get("customer") or {}).get("email", "")
+                return_identifier = f"{completed_at}-{customer_email}"
 
             self._send_error_email(
                 method="add_return_items",
                 error=e,
-                order_reference=new_identifier,
+                order_reference=return_identifier, # <--- Corregido
                 context={"return_id": return_id},
             )
             return None
-
+    
     def reallocate_return_items(self, data):
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
