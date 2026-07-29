@@ -285,10 +285,11 @@ class MintsoftOrderClient:
             r.raise_for_status()
             data = r.json()
             print(data, "barcode buscado")
-            product_id = next(
-                (item["ID"] for item in data if item.get("ClientId") == client_id and item.get("SKU") == sku),
-                None,
-            )
+            try: 
+                product_id = data[0]["ID"],
+
+            except:
+                product_id = None
         
         print(product_id, "producto final")
             
