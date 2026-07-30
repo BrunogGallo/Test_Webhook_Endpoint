@@ -386,7 +386,7 @@ class MintsoftReturnService:
 
                 product_id = None
                 try:
-                    product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
+                    sku, product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 except Exception as e:
                     self.logger.error(f"Error al obtener product_id para SKU {sku}: {e}")
                     continue
@@ -496,7 +496,7 @@ class MintsoftReturnService:
         try:
             for item in line_items:
                 sku = item.get("sku")
-                product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
+                sku, product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
                 carton_code = item.get("put_away_bin")
