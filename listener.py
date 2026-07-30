@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import os
+import traceback
 import requests
 from requests.adapters import HTTPAdapter
 from concurrent.futures import ThreadPoolExecutor
@@ -43,18 +44,24 @@ def enviar_webhook_a_google(datos):
         print(f"❌ Error al enviar datos: {e}")
 
 def enviar_webhook_por_sku(datos):
-    event_data = datos.get('event_data', {})
-    line_items = event_data.get('line_items', [])
+    # Corre en un thread del executor: si dejamos escapar una excepción queda
+    # atrapada en el Future y no la ve nadie.
+    try:
+        event_data = datos.get('event_data', {})
+        line_items = event_data.get('line_items', [])
 
-    for item in line_items:
-        # Copia superficial del payload conservando la misma estructura,
-        # pero con un solo line_item (un SKU) por envío.
-        payload = dict(datos)
-        payload['event_data'] = dict(event_data)
-        payload['event_data']['line_items'] = [item]
+        for item in line_items:
+            # Copia superficial del payload conservando la misma estructura,
+            # pero con un solo line_item (un SKU) por envío.
+            payload = dict(datos)
+            payload['event_data'] = dict(event_data)
+            payload['event_data']['line_items'] = [item]
 
-        print(f"➡️ Enviando SKU: {item.get('sku')}")
-        enviar_webhook_a_google(payload)
+            print(f"➡️ Enviando SKU: {item.get('sku')}")
+            enviar_webhook_a_google(payload)
+    except Exception as e:
+        print(f"❌ Error en enviar_webhook_por_sku: {e}")
+        traceback.print_exc()
 
 
 
@@ -65,6 +72,23 @@ def enviar_a_google_async(datos):
         print("✅ Enviado a Google Apps Script correctamente")
     except Exception as e:
         print(f"❌ Error enviando a Google: {e}")
+
+def _identificar_return(data):
+    """Misma lógica de identificación que usa MintsoftReturnService para los mails
+    de error: tracking_number si existe, si no completed_at-email del cliente."""
+    try:
+        event_data = data.get("event_data") or {}
+        line_items = event_data.get("line_items") or []
+        if line_items:
+            tracking = (line_items[0] or {}).get("tracking_number")
+            if tracking:
+                return tracking
+        completed_at = event_data.get("completed_at")
+        customer_email = (event_data.get("customer") or {}).get("email")
+        return f"{completed_at}-{customer_email}"
+    except Exception:
+        return None
+
 
 def procesar_webhook(data):
     try:
@@ -89,9 +113,22 @@ def procesar_webhook(data):
           return_service.reallocate_return_items(data)
 
         print("Webhook procesado con exito")
-        
+
     except Exception as e:
+        # Catch-all: cualquier fallo que no haya sido capturado (y notificado) dentro
+        # de MintsoftReturnService llega hasta acá. Sin esto el error solo se imprimía
+        # en los logs y nadie se enteraba.
         print(f"Error procesando webhook: {e}")
+        traceback.print_exc()
+        try:
+            return_service._send_error_email(
+                method="procesar_webhook",
+                error=e,
+                order_reference=_identificar_return(data),
+                context={"origen": "listener.procesar_webhook"},
+            )
+        except Exception as mail_err:
+            print(f"❌ No se pudo enviar el mail de error: {mail_err}")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -105,20 +142,21 @@ def webhook():
         return jsonify({"error": "No data"}), 400
 
     thread_data = raw_data.copy() if isinstance(raw_data, dict) else raw_data
-    
+
     print("tdata", thread_data)
-    # 3. Subir JSON al Google Drive
-    executor.submit(enviar_a_google_async, thread_data)
-    
-    try:
-        enviar_webhook_por_sku(thread_data)
 
-    except Exception as e:
-        print(e)
-    
+    # Todo se despacha en segundo plano: el handler tiene que devolver 200 en
+    # milisegundos. Si algo bloquea acá, gunicorn mata al worker por timeout y se
+    # pierde el resto del procesamiento sin dejar rastro.
 
-    # 4. Procesarlo en Mintsoft
+    # 1. Procesarlo en Mintsoft (la operación de negocio, va primero)
     executor.submit(procesar_webhook, raw_data)
+
+    # 2. Subir JSON al Google Drive
+    executor.submit(enviar_a_google_async, thread_data)
+
+    # 3. Notificar a Google un webhook por SKU
+    executor.submit(enviar_webhook_por_sku, thread_data)
 
     return "", 200
 
