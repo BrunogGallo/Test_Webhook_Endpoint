@@ -272,7 +272,7 @@ class MintsoftOrderClient:
             sku_rety = self.get_sku_dado_barcode(barcode)
             # Sku ret
             if sku_rety == "null":
-                return None
+                return sku, None
 
             url = f"{self.BASE_URL}//api/Product/Search?Search={sku_rety}"
 
@@ -286,14 +286,15 @@ class MintsoftOrderClient:
             data = r.json()
             print(data, "barcode buscado")
             try: 
-                product_id = data[0]["ID"],
-
+                product_id = data[0]["ID"][0]
+                sku = sku_rety
+                
             except:
                 product_id = None
         
-        print(product_id, "producto final")
+        print(sku, product_id, "producto final")
             
-        return product_id
+        return sku, product_id
     
 
     
