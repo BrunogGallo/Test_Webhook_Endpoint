@@ -286,7 +286,8 @@ class MintsoftOrderClient:
             data = r.json()
             print(data, "barcode buscado")
             try: 
-                product_id = data[0]["ID"][0]
+                product_id = data[0]["ID"]
+                print(product_id, "producto change")
                 sku = sku_rety
                 
             except:
