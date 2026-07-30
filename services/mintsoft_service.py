@@ -186,18 +186,19 @@ class MintsoftReturnService:
         return None
 
     def create_return(self, data) -> Optional[int]:
-        merchant_name = self._get_merchant_name(data)
-        client_id = map_client(merchant_name) # Si no encuentra devuelve None
-        warehouse = map_warehouse(merchant_name)
-
-        if client_id is None:
-                print ("Client not in Mintsoft, return cannot be processed")
-                return None, "No Return Created"
-
-        orders = self.fetch_mintsoft_orders(data)
-        order_id = self.match_rma_order(orders, data)
-
         try:
+            merchant_name = self._get_merchant_name(data)
+            client_id = map_client(merchant_name) # Si no encuentra devuelve None
+            warehouse = map_warehouse(merchant_name)
+
+            if client_id is None:
+                    print ("Client not in Mintsoft, return cannot be processed")
+                    return None, "No Return Created"
+
+            orders = self.fetch_mintsoft_orders(data)
+            order_id = self.match_rma_order(orders, data)
+
+    
             if order_id is None: # Si es un external return
                 self.logger.info("Order not found in Mintsoft. Creating EXTERNAL return.")
 
