@@ -219,7 +219,7 @@ class MintsoftReturnService:
                 }
                 for item in line_items:
                     sku = item.get("sku")
-                    product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
+                    sku, product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
 
                     if product_id == None:
                         # Si el item no existe en Mintsoft con ese SKU
