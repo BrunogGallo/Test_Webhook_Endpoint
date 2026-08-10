@@ -65,6 +65,7 @@ clients = [
 #
 def map_client(tb_name:str):
     for client in clients:
+        print(client["tb_name"].lower(), tb_name.lower())
         if client["tb_name"].lower() == tb_name.lower():
             return client["m_id"]
     return None
