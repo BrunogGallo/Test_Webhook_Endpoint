@@ -19,6 +19,16 @@ from mappers.main_mapper import map_return
 from mappers.mintsoft_mapper import map_client, map_warehouse
 
 
+def _normalize_order_number(value) -> str:
+    """Normaliza un número de orden para poder compararlo.
+
+    Two Boxes suele mandar el storefront_order_number con '#' adelante (ej '#2131WF')
+    y en Mintsoft la orden está sin él ('2131WF'), así que sacamos el '#' y los espacios
+    y comparamos en mayúsculas.
+    """
+    return str(value or "").strip().lstrip("#").strip().upper()
+
+
 class MintsoftReturnService:
     def __init__(self, logger_name: str = "mintsoft_service", log_file: str = "m_service.log"):
         self.logger = get_logger(logger_name, log_file)
@@ -175,15 +185,24 @@ class MintsoftReturnService:
         self.logger.info("Starting to match RMA order with Mintsoft orders")
 
         rma_order_name = self._get_storefront_order_number(data)
+        try:
+            target = _normalize_order_number(rma_order_name)
 
-        for order in orders:
-            if str(order.get("OrderNumber")) == str(rma_order_name):
-                self.logger.info(f"Found matching order in Mintsoft for RMA order name: {rma_order_name}")
+            if not target:
+                #self.logger.warning("Empty storefront_order_number, cannot match against Mintsoft orders")
+                return None
 
-                return order.get("ID")
+            for order in orders:
+                if _normalize_order_number(order.get("OrderNumber")) == target:
+                    self.logger.info(f"Found matching order in Mintsoft for RMA order name: {rma_order_name}")
 
-        self.logger.warning(f"No matching order found in Mintsoft for RMA order name: {rma_order_name}")
-        return None
+                    return order.get("ID")
+
+            self.logger.warning(f"No matching order found in Mintsoft for RMA order name: {rma_order_name}")
+            return None
+
+        except Exception:
+            return None
 
     def create_return(self, data) -> Optional[int]:
         try:
