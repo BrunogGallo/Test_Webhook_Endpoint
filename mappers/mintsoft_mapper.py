@@ -1,3 +1,7 @@
+import os
+import smtplib
+from email.message import EmailMessage
+
 clients = [
   { "m_name": "Acler", "m_id": 19, "tb_name": "acler", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Significant Other", "m_id": 33, "tb_name": "significant other", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
@@ -57,17 +61,61 @@ clients = [
   { "m_name": "Shop Jula", "m_id": 86, "tb_name": "shop jula", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Compania Fantastica", "m_id": 109, "tb_name": "compañía fantástica", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
   { "m_name": "Elce Swim", "m_id": 55, "tb_name": "elce swim", "tb_rma_prov": "Work Capture", "warehouse_id": 3},
-  { "m_name": "Pony Rider", "m_id": 29, "tb_name": "ponny rider ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
+  { "m_name": "Pony Rider", "m_id": 29, "tb_name": "pony rider ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Mister Zimi", "m_id": 99, "tb_name": "mister zimi", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
   { "m_name": "Rita Row", "m_id": 73, "tb_name": "rita row ecommerce", "tb_rma_prov": "Work Capture", "warehouse_id": 5},
 ]
 
+# Clientes que sabemos que no están en `clients` y no queremos que alerten.
+IGNORED_CLIENTS = ["posse"]
+
+
+def _send_unmapped_client_email(tb_name: str) -> None:
+    """Avisa por mail que tb_name no está en la lista de clientes. Nunca lanza."""
+    try:
+        smtp_host = os.environ.get("SMTP_HOST")
+        smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        smtp_user = os.environ.get("SMTP_USER")
+        smtp_password = os.environ.get("SMTP_PASSWORD")
+        email_to = os.environ.get(
+            "ALERT_EMAIL_TO",
+            "mbivort@the5411.com, jcordero@the5411.com, ngurfinkel@the5411.com, mbivort@the5411.com",
+        )
+
+        if not (smtp_host and smtp_user and smtp_password):
+            return
+
+        msg = EmailMessage()
+        msg["Subject"] = f"[MintsoftReturnService] Cliente no mapeado: {tb_name}"
+        msg["From"] = os.environ.get("ALERT_EMAIL_FROM", smtp_user)
+        msg["To"] = email_to
+        msg.set_content(
+            f"El cliente '{tb_name}' no está en la lista de clientes de "
+            f"mappers/mintsoft_mapper.py, por lo que map_client() y map_warehouse() "
+            f"devolvieron None y la devolución no se pudo mapear."
+        )
+
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+            server.ehlo()
+            try:
+                server.starttls()
+                server.ehlo()
+            except Exception:
+                pass
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+    except Exception:
+        # Que un fallo de notificación no rompa al caller.
+        pass
+
+
 #
 def map_client(tb_name:str):
     for client in clients:
-        print(client["tb_name"].lower(), tb_name.lower())
         if client["tb_name"].lower() == tb_name.lower():
             return client["m_id"]
+    if tb_name.lower() not in IGNORED_CLIENTS:
+        _send_unmapped_client_email(tb_name)
     return None
 
 def map_warehouse(tb_name:str):
@@ -77,3 +125,5 @@ def map_warehouse(tb_name:str):
     return None
 
 # Pavada
+
+#map_client("test-nico")
