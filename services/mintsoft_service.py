@@ -350,6 +350,10 @@ class MintsoftReturnService:
                 response = self.client.allocate_return_item_location(return_id, data)
                 self.logger.info(f"Allocated External Return Items to {location_id}: {response}")
 
+
+            response = self.client.confirm_return(return_id)
+            self.logger.info(f"Confirmed return {return_id}: {response}")
+
             return None
 
         except Exception as e:
