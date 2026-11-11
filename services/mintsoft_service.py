@@ -590,11 +590,80 @@ class MintsoftReturnService:
             )
             return None
     
+    def _send_reallocation_failures_email(self, data, failures, merchant_name, client_id) -> None:
+        """Un solo mail con todos los items que no se pudieron pasar a su caja."""
+        event_data = data.get("event_data") or {}
+        line_items = event_data.get("line_items") or []
+        reference = (line_items[0] or {}).get("tracking_number") if line_items else None
+        if not reference:
+            customer_email = (event_data.get("customer") or {}).get("email")
+            reference = f"{event_data.get('completed_at')}-{customer_email}"
+
+        # Un item "no llegó a la caja" si falló la validación, la creación de la
+        # caja o el transfer. Si solo falló la cuarentena, el transfer salió bien.
+        not_moved_ids = {
+            f.get("line_item_id") for f in failures
+            if not f.get("paso_fallido", "").startswith("poner en cuarentena")
+        }
+        not_moved_skus, quarantine_only_skus = [], []
+        for f in failures:
+            target = not_moved_skus if f.get("line_item_id") in not_moved_ids else quarantine_only_skus
+            if f.get("sku") not in target:
+                target.append(f.get("sku"))
+            if f.get("line_item_id") not in not_moved_ids:
+                f["stock_quedo_en"] = "llegó a la caja; revisar estado de cuarentena"
+
+        parts = []
+        if not_moved_skus:
+            parts.append(
+                f"{len(not_moved_skus)} item(s) NO llegaron a su caja y quedaron en RET / RET-TEMP: "
+                f"{', '.join(map(str, not_moved_skus))}. Moverlos a mano."
+            )
+        if quarantine_only_skus:
+            parts.append(
+                f"{len(quarantine_only_skus)} item(s) llegaron a la caja pero falló la cuarentena: "
+                f"{', '.join(map(str, quarantine_only_skus))}. Revisar que estén en cuarentena."
+            )
+
+        self._send_error_email(
+            method="reallocate_return_items",
+            error=RuntimeError(" ".join(parts)),
+            order_reference=reference,
+            context={
+                "merchant_name": merchant_name,
+                "client_id": client_id,
+                "rma": event_data.get("rma"),
+                "items_fallidos": failures,
+            },
+        )
+
     def reallocate_return_items(self, data):
         merchant_name = self._get_merchant_name(data)
         client_id = map_client(merchant_name) # Si no encuentra devuelve None
         event_data = data.get("event_data")
         line_items = event_data.get("line_items", [])
+
+        # Items que no llegaron a su caja: se avisan todos juntos en un solo mail
+        # al final, y se sigue con el resto de los items.
+        failures = []
+        response = None
+
+        def _record_failure(item, step, error, source_location):
+            entry = {
+                "sku": item.get("sku"),
+                "quantity": item.get("quantity"),
+                "disposition": item.get("disposition"),
+                "put_away_bin": item.get("put_away_bin"),
+                "paso_fallido": step,
+                "error": str(error),
+                "stock_quedo_en": source_location,
+                "line_item_id": item.get("id"),
+            }
+            body = getattr(error, "body", None)
+            if body is not None:
+                entry["respuesta_mintsoft"] = body
+            failures.append(entry)
+            self.logger.error(f"Reallocation falló para {entry['sku']} en '{step}': {error}")
 
         try:
             for item in line_items:
@@ -602,10 +671,21 @@ class MintsoftReturnService:
                 sku, product_id = self.client.get_product_id(sku, client_id, item.get("barcode"))
                 merchant = self._get_merchant_name(data)
                 warehouse = map_warehouse(merchant) # 3 si es Wholesale, 5 si es E-Comm
-                carton_code = item.get("put_away_bin")
+                carton_code = (item.get("put_away_bin") or "").strip()
 
                 disposition = item.get("disposition")
-                if disposition == "Return to Stock": # Stock en buenas condiciones
+                is_good_stock = disposition == "Return to Stock"
+                source_location = "RET" if is_good_stock else "RET-TEMP"
+
+                if not carton_code:
+                    _record_failure(
+                        item, "validar put_away_bin",
+                        "El webhook no trae put_away_bin: no se sabe a qué caja transferir",
+                        source_location,
+                    )
+                    continue
+
+                if is_good_stock: # Stock en buenas condiciones
 
                     reallocation_data = {
                         "SourceWarehouseId": warehouse,
@@ -633,10 +713,17 @@ class MintsoftReturnService:
                             "LocationId": returns_location_id
                         }
 
-                        self.client.create_carton(carton_data, client_id)
+                        try:
+                            self.client.create_carton(carton_data, client_id)
+                        except Exception as e:
+                            _record_failure(item, "crear caja", e, source_location)
+                            continue
 
-                    response = self.client.transfer_stock(reallocation_data)
-                    print(response)
+                    try:
+                        response = self.client.transfer_stock(reallocation_data)
+                        print(response)
+                    except Exception as e:
+                        _record_failure(item, "transferir a la caja", e, source_location)
 
                 else: # Stock a mandar a cuarentena
 
@@ -675,14 +762,28 @@ class MintsoftReturnService:
                             "LocationId": temporary_location_id
                         }
 
-                        self.client.create_carton(carton_data, client_id)
+                        try:
+                            self.client.create_carton(carton_data, client_id)
+                        except Exception as e:
+                            _record_failure(item, "crear caja", e, source_location)
+                            continue
 
-                    self.client.quarantine_stock(quarantine_data)
-                    self.logger.info(f"{sku} from Return set to Quarantine at Location: {item.get("put_away_bin")}")
+                    # Si la cuarentena falla igual se intenta el transfer (como antes),
+                    # pero queda registrado para el mail.
+                    try:
+                        self.client.quarantine_stock(quarantine_data)
+                        self.logger.info(f"{sku} from Return set to Quarantine at Location: {carton_code}")
+                    except Exception as e:
+                        _record_failure(item, "poner en cuarentena", e, source_location)
 
-                    response = self.client.transfer_stock(reallocation_data)
-                    print(response)
+                    try:
+                        response = self.client.transfer_stock(reallocation_data)
+                        print(response)
+                    except Exception as e:
+                        _record_failure(item, "transferir a la caja (cuarentena)", e, source_location)
 
+            if failures:
+                self._send_reallocation_failures_email(data, failures, merchant_name, client_id)
 
             return response
 

@@ -6,6 +6,40 @@ import json
 load_dotenv()
 
 
+class MintsoftOperationError(RuntimeError):
+    """Mintsoft respondió con error (HTTP != 2xx, cuerpo no JSON o Success=false)."""
+
+    def __init__(self, action: str, message: str, status_code=None, body=None):
+        self.action = action
+        self.status_code = status_code
+        self.body = body
+        super().__init__(f"{action} falló (HTTP {status_code}): {message}")
+
+
+def _check_mintsoft_response(r, action: str):
+    """Devuelve el JSON de la respuesta o lanza MintsoftOperationError si Mintsoft
+    indicó un error. Acepta respuestas dict ({Success, Message}) o listas de ellas."""
+    try:
+        body = r.json()
+    except ValueError:
+        body = None
+
+    if not (200 <= r.status_code < 300):
+        message = (body or {}).get("Message") if isinstance(body, dict) else None
+        raise MintsoftOperationError(action, message or (r.text or "")[:500], r.status_code, body)
+
+    if body is None and (r.text or "").strip():
+        raise MintsoftOperationError(action, f"Respuesta no JSON: {r.text[:500]}", r.status_code, r.text)
+
+    results = body if isinstance(body, list) else [body]
+    for result in results:
+        if isinstance(result, dict) and result.get("Success") is False:
+            raise MintsoftOperationError(
+                action, result.get("Message") or "Success=false", r.status_code, body
+            )
+
+    return body
+
 
 class MintsoftOrderClient:
     BASE_URL = "https://api.mintsoft.co.uk"
@@ -155,7 +189,7 @@ class MintsoftOrderClient:
             timeout=120,
         )
 
-        return r.json()
+        return _check_mintsoft_response(r, "TransferStock")
 
     def quarantine_stock(self, request):
         url = f"{self.BASE_URL}/api/Warehouse/StockMovement?Action=7"
@@ -167,7 +201,7 @@ class MintsoftOrderClient:
             timeout=120
         )
 
-        return r.json()
+        return _check_mintsoft_response(r, "StockMovement (Quarantine)")
 
     def get_currencies(self):
         url = f"{self.BASE_URL}/api/RefData/Currencies"
@@ -306,7 +340,7 @@ class MintsoftOrderClient:
 
         json = response.json()
 
-        message = json.get("Message")
+        message = json.get("Message") or ""
 
         if message.startswith("Could not find a Carton with the code"):
             
@@ -319,8 +353,9 @@ class MintsoftOrderClient:
     def create_carton(self, carton_data, client_id):
         url = f'{self.BASE_URL}/api/StorageMedia/CreateCarton?autoGenerateSSCC=false&clientId={client_id}'
 
-        r = requests.post(url, json = carton_data, headers=self.headers())
+        r = requests.post(url, json = carton_data, headers=self.headers(), timeout=120)
 
+        _check_mintsoft_response(r, f"CreateCarton {carton_data.get('Code')}")
         return None
     
     def create_product(self, product_data):
