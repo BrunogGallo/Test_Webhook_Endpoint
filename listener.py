@@ -5,6 +5,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from concurrent.futures import ThreadPoolExecutor
 from services.mintsoft_service import MintsoftReturnService
+from services.return_guard import order_lock, lock_key_for, is_return_confirmed
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 load_dotenv()
@@ -90,29 +91,50 @@ def _identificar_return(data):
         return None
 
 
+def _procesar_webhook_locked(data):
+    # Avisar si hay items vinculados de otro RMA que no vamos a subir
+    return_service.alert_unprocessed_linked_items(data)
+
+    # Crea return interno o externo
+    return_id = return_service.create_return(data)
+    print(return_id)
+
+    # Pasar items de RET o RET-QT a la caja del return si es External
+    if return_id[1] == "External Return Created":
+      # Pasar items a RET o RET-QT
+      return_service.allocate_external_return_items(data, return_id[0])
+
+      # Pasar items de RET o RET-QT a la caja del return si es External
+      return_service.reallocate_return_items(data)
+
+    # Agregar items al return en caso de que sea interno
+    if return_id[1] == "Internal Return Created":
+      # Si Mintsoft nos devolvió un return que ya confirmamos (otro webhook de
+      # la misma orden), agregarle items y confirmarlo otra vez ingresaría stock
+      # duplicado. Cortamos y avisamos por mail para revisarlo a mano.
+      if is_return_confirmed(return_id[0]):
+        raise RuntimeError(
+          f"Mintsoft devolvió el return {return_id[0]}, que ya fue confirmado por "
+          f"otro webhook de la misma orden. No se agregan items ni se confirma "
+          f"de nuevo para no duplicar stock: subir estos items a mano."
+        )
+
+      return_service.add_return_items(return_id[0], data)
+
+      # Pasar items de RET o RET-QT a la caja del return si es Internal
+      return_service.reallocate_return_items(data)
+
+    print("Webhook procesado con exito")
+
+
 def procesar_webhook(data):
     try:
-        # Crea return interno o externo
-        return_id = return_service.create_return(data)
-        print(return_id)
-
-        # Pasar items de RET o RET-QT a la caja del return si es External
-        if return_id[1] == "External Return Created":
-          # Pasar items a RET o RET-QT
-          return_service.allocate_external_return_items(data, return_id[0])
-
-          # Pasar items de RET o RET-QT a la caja del return si es External
-          return_service.reallocate_return_items(data)
-
-        # Agregar items al return en caso de que sea interno
-        if return_id[1] == "Internal Return Created":
-          return_service.add_return_items(return_id[0], data)
-
-        
-          # Pasar items de RET o RET-QT a la caja del return si es Internal
-          return_service.reallocate_return_items(data)
-
-        print("Webhook procesado con exito")
+        # Two Boxes manda dos webhooks (rma + unexpected-item) para la misma
+        # caja casi al mismo tiempo. Si corren en paralelo comparten el return de
+        # Mintsoft y lo confirman dos veces (stock duplicado), así que se
+        # procesan de a uno por orden.
+        with order_lock(lock_key_for(data)):
+            _procesar_webhook_locked(data)
 
     except Exception as e:
         # Catch-all: cualquier fallo que no haya sido capturado (y notificado) dentro

@@ -17,6 +17,7 @@ from loggers.main_logger import get_logger
 from clients.mintsoftClient import MintsoftOrderClient
 from mappers.main_mapper import map_return
 from mappers.mintsoft_mapper import map_client, map_warehouse
+from services.return_guard import mark_return_confirmed
 
 
 def _normalize_order_number(value) -> str:
@@ -139,6 +140,74 @@ class MintsoftReturnService:
             return self._get_storefront_order_number(data)
         except Exception:
             return None
+
+    def alert_unprocessed_linked_items(self, data) -> None:
+        """Avisa por mail de los `linked_line_items` que este servicio no sube.
+
+        Solo procesamos `line_items`. Los linked que son work capture llegan en su
+        propio webhook `unexpected-item`, pero los que pertenecen a OTRO RMA
+        (otra orden u otro tracking, ej. el Nova Top de #A11291523 que se escaneó
+        en la caja de #A11277516) no aparecen en ningún `line_items` de este
+        evento y pueden quedar sin subir a Mintsoft. No los subimos
+        automáticamente porque, si después llega el webhook de su propio RMA, se
+        duplicarían; se avisa para revisarlos a mano. Nunca lanza.
+        """
+        try:
+            event_data = data.get("event_data") or {}
+            line_items = event_data.get("line_items") or []
+            linked = event_data.get("linked_line_items") or []
+            if not linked:
+                return
+
+            own_ids = {li.get("id") for li in line_items if li}
+            own_orders = {
+                _normalize_order_number(li.get("storefront_order_number"))
+                for li in line_items if li
+            }
+            own_trackings = {
+                (li.get("tracking_number") or "").strip() for li in line_items if li
+            }
+
+            foreign = []
+            for item in linked:
+                if not item or item.get("id") in own_ids or item.get("work_capture"):
+                    continue
+                order = _normalize_order_number(item.get("storefront_order_number"))
+                tracking = (item.get("tracking_number") or "").strip()
+                if order not in own_orders or tracking not in own_trackings:
+                    foreign.append({
+                        "sku": item.get("sku"),
+                        "quantity": item.get("quantity"),
+                        "disposition": item.get("disposition"),
+                        "storefront_order_number": item.get("storefront_order_number"),
+                        "tracking_number": item.get("tracking_number"),
+                        "put_away_bin": item.get("put_away_bin"),
+                        "line_item_id": item.get("id"),
+                    })
+
+            if not foreign:
+                return
+
+            reference = (line_items[0] or {}).get("tracking_number") if line_items else None
+            self.logger.warning(
+                f"Return {reference}: {len(foreign)} linked item(s) de otro RMA no se suben a Mintsoft: {foreign}"
+            )
+            self._send_error_email(
+                method="alert_unprocessed_linked_items",
+                error=RuntimeError(
+                    "La caja trae items vinculados de otro RMA que no se suben "
+                    "automáticamente. Verificar si llegaron en el webhook de su "
+                    "propio RMA; si no, subirlos a mano."
+                ),
+                order_reference=reference,
+                context={
+                    "rma": event_data.get("rma"),
+                    "merchant_name": self._get_merchant_name(data),
+                    "linked_items": foreign,
+                },
+            )
+        except Exception as e:
+            self.logger.error(f"Error revisando linked_line_items: {e}", exc_info=True)
 
     def fetch_mintsoft_orders(self, data) -> List[Dict]:
         self.logger.info("Starting to fetch Mintsoft orders")
@@ -494,6 +563,7 @@ class MintsoftReturnService:
             # Step 3: Confirm the return
             self.logger.info(f"Confirming return {return_id}")
             response = self.client.confirm_return(return_id)
+            mark_return_confirmed(return_id)
             self.logger.info(f"Confirmed return {return_id}: {response}")
 
             return None
@@ -638,3 +708,7 @@ class MintsoftReturnService:
                 },
             )
             raise
+
+
+
+        
